@@ -1,0 +1,33 @@
+<% layout('layout') %>
+<form class="form-horizontal" method="post">
+	<fieldset>
+		<legend>Add problem</legend>
+		<%-partial('../partial/input', { name: 'title', label: 'Title', type: 'text', width: 3, }) %>
+		<div class="form-group">
+			<label for="time-limit" class="col-sm-2 control-label">Time Limit</label>
+			<div class="col-sm-1">
+				<input type="text" name="time-limit" id="time-limit" class="form-control">
+			</div>
+			<span class="help-block">ms</span>
+		</div>
+		<div class="form-group">
+			<label for="memory-limit" class="col-sm-2 control-label">Memory Limit</label>
+			<div class="col-sm-1">
+				<input type="text" name="memory-limit" id="memory-limit" class="form-control">
+			</div>
+			<span class="help-block">MB</span>
+		</div>
+		<%-partial('../partial/textarea', { name: 'description', label: 'Description', width: 7, height: 8 }) %>
+		<%-partial('../partial/textarea', { name: 'input', label: 'Input', width: 7, height: 4 }) %>
+		<%-partial('../partial/textarea', { name: 'output', label: 'Output', width: 7, height: 4 }) %>
+		<%-partial('../partial/textarea', { name: 'sample-input', label: 'Sample Input', width: 4, height: 6 }) %>
+		<%-partial('../partial/textarea', { name: 'sample-output', label: 'Sample Output', width: 4, height: 6 }) %>
+		<%-partial('../partial/textarea', { name: 'hint', label: 'Hint', width: 5, height: 3 }) %>
+		<%-partial('../partial/textarea', { name: 'source', label: 'Source', width: 5, height: 1 }) %>
+		<div class="form-group">
+			<div class="col-sm-offset-2 col-sm-2">
+				<button id="submit" type="submit" class="btn btn-sm btn-block btn-success">Add</button>
+			</div>
+		</div>
+	</fieldset>
+</form>

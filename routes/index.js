@@ -6,7 +6,10 @@ module.exports = router;
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'index', });
+  res.render('index', {
+    title: 'index',
+    js: [ '/js/index.js' ]
+  });
 });
 
 router.get('/login', checkNotLogin);

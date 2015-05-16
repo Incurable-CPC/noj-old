@@ -8,10 +8,7 @@ function User(user) {
 module.exports = User;
 
 User.prototype.save = function save(callback) {
-  var user = {
-    name: this.name,
-    password: this.password,
-  };
+  var user = new User(this);
   mongodb.open(function(err, db) {
     test.equal(null, err);
     db.collection('users', function(err, collection) {
@@ -34,7 +31,8 @@ User.get = function get(username, callback) {
     db.collection('users', function(err, collection) {
       test.equal(null, err);
       collection.findOne({ name: username }, function(err, doc) {
-        mongodb.close();
+        test.equal(null, err);
+        db.close();
         if (doc) {
           var user = new User(doc);
           callback(err, user);

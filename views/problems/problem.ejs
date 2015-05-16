@@ -1,0 +1,40 @@
+<% layout('layout') %>
+<div>
+	<div class="text-center">
+		<div><h1><%=pro.pid %> <%=pro.title %></h1></div>
+		<div>
+			Time Limit: <span class="label label-warning"><%=pro.timeLimit %>ms</span>&nbsp;&nbsp;
+			Memory Limit: <span class="label label-warning"><%=pro.memoryLimit %>MB</span>
+		</div>
+	</div>
+	<div class="text-left">
+		<div>
+			<div class="info">Description</div>
+			<div class="detail"><%=pro.description %></div>
+		</div>
+		<div>
+			<div class="info">Input</div>
+			<div class="detail"><%=pro.input %></div>
+		</div>
+		<div>
+			<div class="info">Output</div>
+			<div class="detail"><%=pro.output %></div>
+		</div>
+		<div>
+			<div class="info">Sampe Input</div>
+			<div class="detail"><pre><%=pro.sampleInput %></pre></div>
+		</div>
+		<div>
+			<div class="info">Sample Output</div>
+			<div class="detail"><pre><%=pro.sampleOutput %></pre></div>
+		</div>
+		<div>
+			<div class="info">Hint</div>
+			<div class="detail"><%=pro.hint %></div>
+		</div>
+		<div>
+			<div class="info">Source</div>
+			<div class="detail"><%=pro.source %></div>
+		</div>
+	</div>
+</div>

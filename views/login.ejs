@@ -2,21 +2,11 @@
 <form class="form-horizontal" method="post">
 	<fieldset>
 		<legend>Login</legend>
-		<div class="form-group">
-			<label for="username" class="col-sm-2 control-label">Username</label>
-			<div class="col-sm-2">
-				<input type="text" name="username" id="username" class="form-control"/>
-			</div>
-		</div>
-		<div class="form-group">
-			<label for="password" class="col-sm-2 control-label">Password</label>
-			<div class="col-sm-2">
-				<input type="password" name="password" id="password" class="form-control"/>
-			</div>
-		</div>
+		<%-partial('partial/input', { name: 'username', label: 'Username', type: 'text', width: 2, }) %>
+		<%-partial('partial/input', { name: 'password', label: 'Password', type: 'password', width: 2, }) %>
 		<div class="form-group">
 			<div class="col-sm-offset-2 col-sm-10">
-				<button type="submit" class="btn btn-sm btn-default">Login</button>
+				<button type="submit" class="btn btn-sm btn-primary">Login</button>
 			</div>
 		</div>
 	</fieldset>

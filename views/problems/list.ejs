@@ -1,0 +1,16 @@
+<% layout('layout') %>
+
+<table class="table table-striped">
+	<tr>
+		<th width="10%">ID</th>
+		<th width="70%">Title</th>
+		<th width="20%">Radio(AC/Submit)</th>
+	</tr>
+	<% for (var i in pro) { %>
+	<tr>
+		<td><%=pro[i].pid %></td>
+		<td><a href="/problems/problem/<%=pro[i].pid %>"><%=pro[i].title %></a></td>
+		<td>100%(0/0)</td>
+	</tr>
+	<% } %>
+</table>

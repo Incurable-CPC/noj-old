@@ -1,4 +1,18 @@
 body {
-	  padding-top: 80px;
-	  padding-bottom: 40px;
+	padding-top: 80px;
+	padding-bottom: 40px;
+}
+
+textarea {
+	resize: none;
+}
+
+.detail {
+	margin: 15px 30px 15px;
+	font-size: 18px;
+	font-family: "minion-pro-1", "minion-pro-2", "Palatino", Georgia, "Times New Roman", serif;
+}
+.info {
+	font-size: 20px;
+	font-weight: bolder;
 }
