@@ -65,7 +65,6 @@ Problem.getList = function getList(page, callback) {
       } }, { pid: 1, title: 1 }).toArray(function(err, docs) {
         test.equal(null, err);
         db.close();
-        console.log(docs);
         if (docs) {
           callback(err, docs);
         } else {

@@ -1,0 +1,36 @@
+<% layout('layout') %>
+
+<table class="table table-striped">
+	<tr>
+		<th width="10%">Run ID</th>
+		<th width="%10">Problem</th>
+		<th width="%10">User</th>
+		<th width="%10">Result</th>
+		<th width="%10">Time</th>
+		<th width="%10">Memory</th>
+		<th width="%10">Lang</th>
+		<th width="%10">Code Length</th>
+		<th width="20%">Submit Time<th>
+	</tr>
+	<% for (var i in sol) { %>
+	<tr>
+		<td>
+			<% if (sol[i].canView) { %>
+				<a href="/status/code/<%= sol[i].sid %>">
+					<%=sol[i].sid %>
+				</a>
+			<% } else { %>
+				<%=sol[i].sid %>
+			<% } %>
+		</td>
+		<td><a href="/problems/problem/<%=sol[i].pid %>"><%=sol[i].pid %></a></td>
+		<td><%=sol[i].user %></td>
+		<td>Pending</td>
+		<td>---</td>
+		<td>---</td>
+		<td><%=sol[i].lang %></td>
+		<td><%=sol[i].code.length %> B</td>
+		<td><%=sol[i].date %></td>
+	</tr>
+	<% } %>
+</table>

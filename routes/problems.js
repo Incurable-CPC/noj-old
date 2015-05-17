@@ -1,3 +1,4 @@
+var Solution = require('../models/solution');
 var Problem = require('../models/problem');
 var express = require('express');
 var router = express.Router();
@@ -48,5 +49,23 @@ router.get('/problem/:pid', function(req, res, next) {
       req.flash('error', 'Problem not exist');
       return res.redirect('/');
     }
+  });
+});
+
+router.get('/submit/:pid', function(req, res, next) {
+  var pid = req.params['pid'];
+  return res.render('problems/submit', {
+    title: 'submit',
+    pid: pid
+  });
+});
+
+router.post('/submit/:pid', function(req, res, next) {
+  var sol = req.body;
+  sol.user = req.session.user.name;
+  sol = new Solution(sol);
+  sol.save(function(err) {
+    req.flash('success', 'Submit success');
+    return res.redirect('/status');
   });
 });

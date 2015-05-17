@@ -43,11 +43,11 @@ app.use(function(req, res, next) {
 
 
 var routes = require('./routes/index');
-var users = require('./routes/users');
+var status = require('./routes/status');
 var problems = require('./routes/problems');
 
 app.use('/', routes);
-app.use('/users', users);
+app.use('/status', status);
 app.use('/problems', problems);
 
 

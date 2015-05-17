@@ -34,8 +34,7 @@ User.get = function get(username, callback) {
         test.equal(null, err);
         db.close();
         if (doc) {
-          var user = new User(doc);
-          callback(err, user);
+          callback(err, doc);
         } else {
           callback(err, null);
         }
