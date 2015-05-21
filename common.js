@@ -9,6 +9,26 @@ exports.postHandle = function postHandle(obj) {
   return ret;
 };
 
+exports.checkLogin = function checkLogin(req, res, next) {
+  if (!req.session['user']) {
+    req.flash('error', 'not loged');
+    return res.redirect('/');
+  }
+  next();
+}
+exports.checkNotLogin = function checkNotLogin(req, res, next) {
+  if (req.session['user']) {
+    req.flash('error', 'already logged');
+    return res.redirect('/');
+  }
+  next();
+}
+exports.md5 = function md5(str) {
+  var md5 = require('crypto').createHash('md5');
+  return md5.update(str).digest('base64');
+}
+
+
 Date.prototype.format = function (fmt) {
   var o = {
     'M+': this.getMonth()+1,

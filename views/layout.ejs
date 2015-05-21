@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title><%= title %> - Noj</title>
+		<title><%= title %> - NOJ</title>
 		<link rel="stylesheet" href="/css/bootstrap.min.css" />
 		<link rel="stylesheet" href="/css/bootstrap-theme.min.css" />
 		<link rel="stylesheet" href="/css/common.css" />
-		<% for (var file in css) { %>
-		<link rel='stylesheet' href="<%=file %>" />
+		<% for (var i = 0; i < css.length; i++) { %>
+		<link rel='stylesheet' href="<%=css[i] %>" />
 		<% } %>
 	</head>
 	<body role="document">
@@ -62,7 +62,7 @@
 	</body>
 	<script src="/js/jquery-1.11.3.min.js"></script>
 	<script src="/js/bootstrap.min.js"></script>
-	<% for (var i in js) { %>
+	<% for (var i = 0; i < js.length; i++) { %>
 	<script src="<%=js[i] %>"></script>
 	<% } %>
 </html>

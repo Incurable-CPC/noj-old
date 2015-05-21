@@ -4,6 +4,8 @@ var express = require('express');
 var router = express.Router();
 module.exports = router;
 var common = require('../common');
+var test = require('assert');
+var fs = require('fs');
 
 router.get('/', function(req, res, next) {
   return res.redirect('/problems/list/1');
@@ -23,13 +25,48 @@ router.get('/list/:page', function(req, res, next) {
 router.get('/add', function(req, res, next) {
   return res.render('problems/add', {
     title: 'add-problem',
-    js: [ '/js/problems/problems.js' ],
+    js: [
+      '/js/problems/problems.js',
+      '/js/input-file.js'
+    ],
+    css: [
+      '/css/input-file.css'
+    ]
   });
 });
 
 router.post('/add', function(req, res, next) {
   var pro = new Problem(common.postHandle(req.body));
-  pro.save(function(err) {
+  var datafiles = {};
+  req.files.testdata.forEach(function(file) {
+    var name = file.originalname;
+    name = name.slice(0, name.lastIndexOf('.'));
+    if (!datafiles[name]) datafiles[name] = {};
+    datafiles[name][file.extension] = file.name;
+  });
+  pro.save(function(err, pro) {
+    fs.mkdir('./testdata/'+pro.pid, function(err) {
+      test.equal(null, err);
+      var cnt = 0;
+      for (var key in datafiles) {
+        var datafile = datafiles[key];
+        if ((datafile.in)&&(datafile.out)) {
+          (function(cnt, datafile) {
+            var file = './testdata/'+pro.pid+'/testdata'+cnt;
+            Object.keys(datafile).forEach(function(type) {
+              fs.readFile('./tmp/'+datafile[type], function(err, data) {
+                fs.writeFile(file+'.'+type, data);
+                fs.unlink('./tmp/'+datafile[type]);
+              });
+            });
+          })(cnt, datafile);
+          cnt++;
+        } else {
+          for (var type in datafile) fs.unlink('./tmp/'+datafile[type]);
+        }
+      }
+    });
+    
     req.flash('success', 'Add problem success');
     return res.redirect('/problems/add');
   });

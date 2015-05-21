@@ -2,8 +2,8 @@ var mongodb = require('./db');
 var test = require('assert');
 
 function User(user) {
-  this.name = user.name;
-  this.password = user.password;
+  this.name = (user.name)? user.name: '';
+  this.password = (user.password)? user.password: '';
 };
 module.exports = User;
 

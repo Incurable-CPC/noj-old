@@ -8,11 +8,12 @@ textarea {
 }
 
 .detail {
-	margin: 15px 30px 15px;
+	margin: 20px 40px 20px;
 	font-size: 18px;
-	font-family: "minion-pro-1", "minion-pro-2", "Palatino", Georgia, "Times New Roman", serif;
+	font-family: Georgia, "Times New Roman", serif;
 }
 .info {
 	font-size: 20px;
 	font-weight: bolder;
+	color: #000099;
 }

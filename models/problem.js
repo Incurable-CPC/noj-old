@@ -2,16 +2,18 @@ var mongodb = require('./db');
 var test = require('assert');
 
 function Problem(pro) {
-  this.title = pro.title;
-  this.timeLimit = pro.timeLimit;
-  this.memoryLimit = pro.memoryLimit;
-  this.description = pro.description;
-  this.input = pro.input;
-  this.output = pro.output;
-  this.sampleInput = pro.sampleInput;
-  this.sampleOutput = pro.sampleOutput;
-  this.source = pro.source;
-  this.hint = pro.hint;
+  this.pid = (pro.pid)? pro.pid: 1000;
+  this.title = (pro.title)? pro.title: '';
+  this.timeLimit = (pro.timeLimit)? Number(pro.timeLimit): 1000;
+  this.memoryLimit = (pro.memoryLimit)? Number(pro.memoryLimit): 256;
+  this.description = (pro.description)? pro.description: '';
+  this.input = (pro.input)? pro.input: '';
+  this.output = (pro.output)? pro.output: '';
+  this.sampleInput = (pro.sampleInput)? pro.sampleInput: '';
+  this.sampleOutput = (pro.sampleOutput)? pro.sampleOutput: '';
+  this.source = (pro.source)? pro.source: '';
+  this.hint = (pro.hint)? pro.hint: '';
+  this.testdataNum = (pro.testdataNum)? pro.testdataNum: 0;
 };
 module.exports = Problem;
 
@@ -28,9 +30,23 @@ Problem.prototype.save = function save(callback) {
           collection.insertOne(problem, { safe: true }, function(err, result) {
             test.equal(null, err);
             db.close();
-            callback(err, result);
+            callback(err, problem);
           });
         });
+      });
+    });
+  });
+};
+
+Problem.prototype.setTestdataNum = function setTestdataNum(num) {
+  this.testdataNum = num;
+  var pro = new Problem(this);
+  mongodb.open(function(err, db) {
+    test.equal(null, err);
+    db.collection('problems', function(err, collection) {
+      test.equal(null, err);
+      collection.findOneAndUpdate({ pid: pro.pid }, { $set: { testdataNum: pro.testdataNum } }, function(err) {
+        test.equal(null, err);
       });
     });
   });

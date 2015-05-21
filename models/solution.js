@@ -2,16 +2,17 @@ var mongodb = require('./db');
 var test = require('assert');
 
 function Solution(sol) {
-  this.code = sol.code;
-  this.lang = sol.lang;
-  this.user = sol.user;
-  this.pid = sol.pid;
+  this.code = (sol.code)? sol.code: '';
+  this.lang = (sol.lang)? sol.lang: 'c';
+  this.user = (sol.user)? sol.user: '';
+  this.pid = (sol.pid)? Number(sol.pid): 1000;
+  this.date = (sol.date)? sol.date: new Date().format('yyyy-MM-dd hh:mm:ss');
+  this.codeLength = (sol.codeLength)? sol.codeLength: sol.code.length;
 };
 module.exports = Solution;
 
 Solution.prototype.save = function save(callback) {
   var solution = new Solution(this);
-  solution.date = new Date().format('yyyy-MM-dd hh:mm:ss');
   mongodb.open(function(err, db) {
     test.equal(null, err);
     db.collection('solutions', function(err, collection) {
@@ -54,7 +55,7 @@ Solution.getList = function getList(page, callback) {
     test.equal(null, err);
     db.collection('solutions', function(err, collection) {
       test.equal(null, err);
-      collection.find().sort({ sid: -1 }).
+      collection.find({}, { code: false }).sort({ sid: -1 }).
         skip(50*(page-1)).limit(50).toArray(function(err, docs) {
         test.equal(null, err);
         db.close();

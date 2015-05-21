@@ -3,6 +3,7 @@ var express = require('express');
 var router = express.Router();
 var util = require('util');
 module.exports = router;
+var common = require('../common');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -12,13 +13,13 @@ router.get('/', function(req, res, next) {
   });
 });
 
-router.get('/login', checkNotLogin);
+router.get('/login', common.checkNotLogin);
 router.get('/login', function(req, res, next) {
   return res.render('login', { title: 'login'});
 });
 
 router.post('/login', function(req, res, next) {
-  var password = md5(req.body['password']);
+  var password = common.md5(req.body['password']);
   User.get(req.body['username'], function(err, user) {
     if (!user) {
       req.flash('error', 'User not exist');
@@ -34,14 +35,14 @@ router.post('/login', function(req, res, next) {
   });
 });
 
-router.get('/logout', checkLogin);
+router.get('/logout', common.checkLogin);
 router.get('/logout', function(req, res, next) {
   req.session['user'] = null;
   req.flash('success', 'Logout success');
   return res.redirect('/');
 });
 
-router.get('/reg', checkNotLogin);
+router.get('/reg', common.checkNotLogin);
 router.get('/reg', function(req, res, next) {
   return res.render('reg', {
     title: 'register',
@@ -56,7 +57,7 @@ router.post('/reg', function(req, res, next) {
   }
   var newUser = new User({
         name: req.body['username'],
-        password: md5(req.body['password'])
+        password: common.md5(req.body['password'])
       });
   User.get(newUser.name, function(err, user) {
     if (user) {
@@ -77,23 +78,3 @@ router.get('/reg/exist/:username', function(req, res, next) {
     return res.send({ exist: !!user });
   });
 });
-
-function checkLogin(req, res, next) {
-  if (!req.session['user']) {
-    req.flash('error', 'not loged');
-    return res.redirect('/');
-  }
-  next();
-}
-function checkNotLogin(req, res, next) {
-  if (req.session['user']) {
-    req.flash('error', 'already logged');
-    return res.redirect('/');
-  }
-  next();
-}
-function md5(str) {
-  var md5 = require('crypto').createHash('md5');
-  return md5.update(str).digest('base64');
-}
-

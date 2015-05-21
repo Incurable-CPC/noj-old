@@ -6,6 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var engine = require('ejs-mate');
 var flash = require('connect-flash');
+var multer = require('multer');
 var app = express();
 
 // view engine setup
@@ -17,6 +18,7 @@ app.set('view engine', 'ejs');
 //app.use(favicon(__dirname + '/public/favicon.ico'));
 app.use(logger('dev'));
 app.use(bodyParser.json());
+app.use(multer({ dest: './tmp/' }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -37,7 +39,7 @@ app.use(function(req, res, next) {
   res.locals.user = req.session.user;
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
-  res.locals.js = res.locals.css = null;
+  res.locals.js = res.locals.css = [];
   next();
 });
 
