@@ -1,5 +1,7 @@
 var mongodb = require('./db');
+var mkdirp = require('mkdirp');
 var test = require('assert');
+var fs = require('fs');
 
 function Problem(pro) {
   this.pid = (pro.pid)? pro.pid: 1000;
@@ -38,15 +40,22 @@ Problem.prototype.save = function save(callback) {
   });
 };
 
-Problem.prototype.setTestdataNum = function setTestdataNum(num) {
-  this.testdataNum = num;
-  var pro = new Problem(this);
-  mongodb.open(function(err, db) {
-    test.equal(null, err);
-    db.collection('problems', function(err, collection) {
+Problem.prototype.update = function update() {
+  var newPro = new Problem(this);
+  Problem.get(newPro.pid, function(err, pro) {
+    var diff = {};
+    for (var key in pro) {
+      if (newPro[key] != pro[key])
+        diff[key] = newPro[key];
+    }
+    if (!diff) return;
+    mongodb.open(function(err, db) {
       test.equal(null, err);
-      collection.findOneAndUpdate({ pid: pro.pid }, { $set: { testdataNum: pro.testdataNum } }, function(err) {
+      db.collection('problems', function(err, collection) {
         test.equal(null, err);
+        collection.findOneAndUpdate({ pid: pro.pid }, { $set: diff }, function(err) {
+          test.equal(null, err);
+        });
       });
     });
   });
@@ -61,7 +70,8 @@ Problem.get = function get(pid, callback) {
         test.equal(null, err);
         db.close();
         if (doc) {
-          callback(err, doc);
+          var pro = new Problem(doc);
+          callback(err, pro);
         } else {
           callback(err, null);
         }
@@ -86,6 +96,38 @@ Problem.getList = function getList(page, callback) {
         } else {
           callback(err, null);
         }
+      });
+    });
+  });
+};
+
+Problem.prototype.addTestdata = function addTestdata(testdata, callback) {
+  var pro = new Problem(this);
+  var tmp = {};
+  var datafiles = [];
+  testdata.forEach(function(file) {
+    var name = file.originalname;
+    name = name.slice(0, name.lastIndexOf('.'));
+    if (!tmp[name]) tmp[name] = {};
+    tmp[name][file.extension] = file.name;
+    if ((tmp[name].in)&&(tmp[name].out))
+      datafiles.push(tmp[name]);
+  });
+  this.testdataNum += datafiles.length;
+  this.update();
+  mkdirp('./testdata/'+pro.pid, function(err) {
+    test.equal(null, err);
+    var cnt = 0;
+    datafiles.forEach(function(datafile, i) {
+      var id = i+pro.testdataNum
+      var file = './testdata/'+pro.pid+'/testdata'+id;
+      Object.keys(datafile).forEach(function(type) {
+        fs.readFile('./tmp/'+datafile[type], function(err, data) {
+          test.equal(null, err);
+          fs.writeFile(file+'.'+type, data);
+          cnt++;
+          if (cnt == 2*datafiles.length) callback(err);
+        });
       });
     });
   });

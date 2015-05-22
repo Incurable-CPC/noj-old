@@ -37,36 +37,12 @@ router.get('/add', function(req, res, next) {
 
 router.post('/add', function(req, res, next) {
   var pro = new Problem(common.postHandle(req.body));
-  var datafiles = {};
-  req.files.testdata.forEach(function(file) {
-    var name = file.originalname;
-    name = name.slice(0, name.lastIndexOf('.'));
-    if (!datafiles[name]) datafiles[name] = {};
-    datafiles[name][file.extension] = file.name;
-  });
   pro.save(function(err, pro) {
-    fs.mkdir('./testdata/'+pro.pid, function(err) {
-      test.equal(null, err);
-      var cnt = 0;
-      for (var key in datafiles) {
-        var datafile = datafiles[key];
-        if ((datafile.in)&&(datafile.out)) {
-          (function(cnt, datafile) {
-            var file = './testdata/'+pro.pid+'/testdata'+cnt;
-            Object.keys(datafile).forEach(function(type) {
-              fs.readFile('./tmp/'+datafile[type], function(err, data) {
-                fs.writeFile(file+'.'+type, data);
-                fs.unlink('./tmp/'+datafile[type]);
-              });
-            });
-          })(cnt, datafile);
-          cnt++;
-        } else {
-          for (var type in datafile) fs.unlink('./tmp/'+datafile[type]);
-        }
-      }
+    pro.addTestdata(req.files.testdata, function(err) {
+      req.files.testdata.forEach(function(file) {
+        fs.unlink('./tmp/'+file.name);
+      });
     });
-    
     req.flash('success', 'Add problem success');
     return res.redirect('/problems/add');
   });
