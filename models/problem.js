@@ -1,6 +1,7 @@
 var mongodb = require('./db');
 var mkdirp = require('mkdirp');
 var test = require('assert');
+var path = require('path');
 var fs = require('fs');
 
 function Problem(pro) {
@@ -118,14 +119,15 @@ Problem.prototype.addTestdata = function addTestdata(testdata, callback) {
   });
   this.testdataNum += datafiles.length;
   this.update();
-  mkdirp('./testdata/'+pro.pid, function(err) {
+  var dir = path.join('sandbox', 'testdata', String(pro.pid));
+  mkdirp(dir, function(err) {
     test.equal(null, err);
     var cnt = 0;
     datafiles.forEach(function(datafile, i) {
       var id = i+pro.testdataNum
-      var file = './testdata/'+pro.pid+'/testdata'+id;
+      var file = path.join(dir, 'testdata'+id);
       Object.keys(datafile).forEach(function(type) {
-        fs.readFile('./tmp/'+datafile[type], function(err, data) {
+        fs.readFile(path.join('tmp', datafile[type]), function(err, data) {
           test.equal(null, err);
           fs.writeFile(file+'.'+type, data, function(err) {
             test.equal(null, err);

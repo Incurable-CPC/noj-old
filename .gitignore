@@ -1,5 +1,6 @@
 node_modules/*
 *.swp
 test.js
-testdata/*
+sandbox/*
+!sandbox/*.[ch]
 tmp/*

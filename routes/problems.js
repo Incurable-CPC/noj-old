@@ -5,6 +5,7 @@ var router = express.Router();
 module.exports = router;
 var common = require('../common');
 var test = require('assert');
+var path = require('path');
 var fs = require('fs');
 
 router.get('/', function(req, res, next) {
@@ -40,7 +41,7 @@ router.post('/add', function(req, res, next) {
   pro.save(function(err, pro) {
     pro.addTestdata(req.files.testdata, function(err) {
       req.files.testdata.forEach(function(file) {
-        fs.unlink('./tmp/'+file.name);
+        fs.unlink(path.join('tmp', file.name));
       });
     });
     req.flash('success', 'Add problem success');
