@@ -16,6 +16,8 @@ function Problem(pro) {
   this.source = (pro.source)? pro.source: '';
   this.hint = (pro.hint)? pro.hint: '';
   this.testdataNum = (pro.testdataNum)? pro.testdataNum: 0;
+  this.submit = (pro.submit)? pro.submit: 0;
+  this.accepted = (pro.accepted)? pro.accepted: 0;
 };
 module.exports = Problem;
 
@@ -43,6 +45,7 @@ Problem.prototype.save = function save(callback) {
 Problem.prototype.update = function update() {
   var newPro = new Problem(this);
   Problem.get(newPro.pid, function(err, pro) {
+    test.equal(null, err);
     var diff = {};
     for (var key in pro) {
       if (newPro[key] != pro[key])
@@ -88,7 +91,7 @@ Problem.getList = function getList(page, callback) {
       collection.find({ pid: {
         $gte: 950+page*50,
         $lt: 1000+page*50
-      } }, { pid: 1, title: 1 }).toArray(function(err, docs) {
+      } }, { pid: 1, title: 1, totalSubmit: 1, acceptSubmit: 1}).toArray(function(err, docs) {
         test.equal(null, err);
         db.close();
         if (docs) {
@@ -124,9 +127,11 @@ Problem.prototype.addTestdata = function addTestdata(testdata, callback) {
       Object.keys(datafile).forEach(function(type) {
         fs.readFile('./tmp/'+datafile[type], function(err, data) {
           test.equal(null, err);
-          fs.writeFile(file+'.'+type, data);
-          cnt++;
-          if (cnt == 2*datafiles.length) callback(err);
+          fs.writeFile(file+'.'+type, data, function(err) {
+            test.equal(null, err);
+            cnt++;
+            if (cnt == 2*datafiles.length) callback(err);
+          });
         });
       });
     });

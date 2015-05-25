@@ -6,7 +6,7 @@ function Solution(sol) {
   this.lang = (sol.lang)? sol.lang: 'c';
   this.user = (sol.user)? sol.user: '';
   this.pid = (sol.pid)? Number(sol.pid): 1000;
-  this.date = (sol.date)? sol.date: new Date().format('yyyy-MM-dd hh:mm:ss');
+  this.date = (sol.date)? sol.date: new Date();
   this.codeLength = (sol.codeLength)? sol.codeLength: sol.code.length;
 };
 module.exports = Solution;
@@ -32,6 +32,28 @@ Solution.prototype.save = function save(callback) {
   });
 };
 
+Solution.prototype.update = function update() {
+  var newSol = new Solution(this);
+  Solution.get(newSol.pid, function(err, sol) {
+    test.equal(null, err);
+    var diff = {};
+    for (var key in sol) {
+      if (newSol[key] != sol[key])
+        diff[key] = newSol[key];
+    }
+    if (!diff) return;
+    mongodb.open(function(err, db) {
+      test.equal(null, err);
+      db.collection('solutions', function(err, collection) {
+        test.equal(null, err);
+        collection.findOneAndUpdate({ sid: sol.sid }, { $set: diff }, function(err) {
+          test.equal(null, err);
+        });
+      });
+    });
+  });
+};
+
 Solution.get = function get(sid, callback) {
   mongodb.open(function(err, db) {
     test.equal(null, err);
@@ -41,7 +63,8 @@ Solution.get = function get(sid, callback) {
         test.equal(null, err);
         db.close();
         if (doc) {
-          callback(err, doc);
+          var sol = new Solution(doc);
+          callback(err, sol);
         } else {
           callback(err, null);
         }
