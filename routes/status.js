@@ -17,7 +17,8 @@ router.get('/page/:page', function(req, res, next) {
     return res.render('status', {
       title: 'status',
       js: [ '/js/status.js' ],
-      sol: list
+      sol: list,
+      status: Solution.status
     });
   });
 });
@@ -26,7 +27,10 @@ router.get('/code/:sid', common.checkLogin);
 router.get('/code/:sid', function(req, res, next) {
   var sid = Number(req.params['sid']);
   Solution.get(sid, function(err, sol) {
-    if (sol.user != req.session.user.name) {
+    if (!sol) {
+      req.flash('error', 'Submission not exist');
+      return res.redirect('/');
+    } else if (sol.user != req.session.user.name) {
       req.flash('error', 'You can only view your submission');
       return res.redirect('/');
     } else {

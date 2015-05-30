@@ -40,6 +40,7 @@ User.prototype.update = function update(callback) {
         test.equal(null, err);
         collection.findOneAndUpdate({ name : user.name }, { $set: diff }, function(err) {
           test.equal(null, err);
+          if (callback) callback(err);
         });
       });
     });

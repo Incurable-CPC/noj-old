@@ -43,7 +43,7 @@ Problem.prototype.save = function save(callback) {
   });
 };
 
-Problem.prototype.update = function update() {
+Problem.prototype.update = function update(callback) {
   var newPro = new Problem(this);
   Problem.get(newPro.pid, function(err, pro) {
     test.equal(null, err);
@@ -59,6 +59,7 @@ Problem.prototype.update = function update() {
         test.equal(null, err);
         collection.findOneAndUpdate({ pid: pro.pid }, { $set: diff }, function(err) {
           test.equal(null, err);
+          if (callback) callback(err);
         });
       });
     });
