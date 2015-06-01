@@ -1,6 +1,7 @@
 var Solution = require('../models/solution');
 var Problem = require('../models/problem');
 var express = require('express');
+var marked = require('marked');
 var router = express.Router();
 module.exports = router;
 var common = require('../common');
@@ -18,11 +19,12 @@ router.get('/list/:page', function(req, res, next) {
     return res.render('problems/list', {
       title: 'problems',
       js: [ '/js/problems/problems.js' ],
-      pro: list
+      proList: list
     });
   });
 });
 
+router.get('/add', common.checkAdmin);
 router.get('/add', function(req, res, next) {
   return res.render('problems/add', {
     title: 'add-problem',
@@ -36,10 +38,15 @@ router.get('/add', function(req, res, next) {
   });
 });
 
+router.post('/add', common.checkAdmin);
 router.post('/add', function(req, res, next) {
   var pro = new Problem(common.postHandle(req.body));
+  pro.description = marked(pro.description);
+  pro.input = marked(pro.input);
+  pro.output = marked(pro.output);
   pro.save(function(err, pro) {
     pro.addTestdata(req.files.testdata, function(err) {
+      if (!req.files.testdata) return;
       req.files.testdata.forEach(function(file) {
         fs.unlink(path.join('tmp', file.name));
       });
@@ -74,6 +81,7 @@ router.get('/submit/:pid', function(req, res, next) {
   });
 });
 
+router.post('/submit/:pid', common.checkLogin);
 router.post('/submit/:pid', function(req, res, next) {
   var sol = req.body;
   sol.user = req.session.user.name;

@@ -1,3 +1,4 @@
+public/js/lib/*
 node_modules/*
 *.swp
 test.js

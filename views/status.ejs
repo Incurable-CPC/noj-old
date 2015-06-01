@@ -12,25 +12,5 @@
 		<th width="10%">Code Length</th>
 		<th width="15%">Submit Time<th>
 	</tr>
-	<% for (var i = 0; i < sol.length; i++) { %>
-	<tr>
-		<td>
-			<% if (sol[i].canView) { %>
-				<a href="/status/code/<%= sol[i].sid %>">
-					<%=sol[i].sid %>
-				</a>
-			<% } else { %>
-				<%=sol[i].sid %>
-			<% } %>
-		</td>
-		<td><a href="/problems/problem/<%=sol[i].pid %>"><%=sol[i].pid %></a></td>
-		<td><%=sol[i].user %></td>
-		<td><%=status[sol[i].result] %></td>
-		<td><%=sol[i].timeUsage %></td>
-		<td><%=sol[i].memoryUsage%></td>
-		<td><%=sol[i].lang %></td>
-		<td><%=sol[i].codeLength %> B</td>
-		<td><%=sol[i].date.format('yyyy-MM-dd hh:mm:ss') %></td>
-	</tr>
-	<% } %>
+	<%-partial('partial/sol', solList) %>
 </table>

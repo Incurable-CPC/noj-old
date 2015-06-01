@@ -17,8 +17,7 @@ router.get('/page/:page', function(req, res, next) {
     return res.render('status', {
       title: 'status',
       js: [ '/js/status.js' ],
-      sol: list,
-      status: Solution.status
+      solList: list,
     });
   });
 });

@@ -11,14 +11,21 @@ exports.postHandle = function postHandle(obj) {
 
 exports.checkLogin = function checkLogin(req, res, next) {
   if (!req.session['user']) {
-    req.flash('error', 'not loged');
+    req.flash('error', 'Not loged');
+    return res.redirect('/');
+  }
+  next();
+}
+exports.checkAdmin = function checkAdmin(req, res, next) {
+  if ((!req.session['user'])||(!req.session['user'].isAdmin)) {
+    req.flash('error', 'Permission denied');
     return res.redirect('/');
   }
   next();
 }
 exports.checkNotLogin = function checkNotLogin(req, res, next) {
   if (req.session['user']) {
-    req.flash('error', 'already logged');
+    req.flash('error', 'Already logged');
     return res.redirect('/');
   }
   next();

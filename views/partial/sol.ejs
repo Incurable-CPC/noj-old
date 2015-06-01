@@ -1,0 +1,19 @@
+<tr sid="<%=sol.sid %>">
+	<td>
+		<% if (sol.canView) { %>
+			<a href="/status/code/<%= sol.sid %>">
+				<%=sol.sid %>
+			</a>
+		<% } else { %>
+			<%=sol.sid %>
+		<% } %>
+	</td>
+	<td><a href="/problems/problem/<%=sol.pid %>"><%=sol.pid %></a></td>
+	<td><%=sol.user %></td>
+	<td class="status-<%=sol.result %>"><%=status[sol.result] %></td>
+	<td><%=sol.timeUsage %></td>
+	<td><%=sol.memoryUsage%></td>
+	<td><%=sol.lang %></td>
+	<td><%=sol.codeLength %> B</td>
+	<td><%=sol.date.format('yyyy-MM-dd hh:mm:ss') %></td>
+</tr>

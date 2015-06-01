@@ -52,7 +52,7 @@ router.get('/reg', function(req, res, next) {
 
 router.post('/reg', function(req, res, next) {
   if (req.body['password'] != req.body['confirm-password']) {
-    req.flash('error', 'passwords not match');
+    req.flash('error', 'Passwords not match');
     return res.redirect('/reg');
   }
   var newUser = new User({

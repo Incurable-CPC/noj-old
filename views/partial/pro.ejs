@@ -1,0 +1,12 @@
+<tr>
+	<td><%=pro.pid %></td>
+	<td><a href="/problems/problem/<%=pro.pid %>"><%=pro.title %></a></td>
+	<td>
+		<% if (pro.submit == 0) { %>
+			0
+		<% } else { %>
+			<%=pro.accepted*100/pro.submit %>
+		<% } %>
+		% ( <%=pro.accepted %> / <%=pro.submit %> )
+	</td>
+</tr>

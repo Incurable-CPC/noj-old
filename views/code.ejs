@@ -2,4 +2,46 @@
 <style>
 .prettyprint ol.linenums > li { list-style-type: decimal; }
 </style>
-<pre class="prettyprint linenums"><%= sol.code %></pre>
+<div class="contain">
+	<div class="row">
+		<div class="col-sm-3">
+			<table class="table table-striped">
+				<tr>
+					<th>Run ID</th>
+					<td><%=sol.sid %></td>
+				</tr>
+				<tr>
+					<th>Problem</th>
+					<td><a href="/problems/problem/<%=sol.pid %>"><%=sol.pid %></a></td>
+				</tr>
+				<tr>
+					<th>User</th>
+					<td><%=sol.user %></td>
+				</tr>
+				<tr>
+					<th>Lang</th>
+					<td><%=sol.lang %></td>
+				</tr>
+				<tr>
+					<th>Result</th>
+					<td class="status-<%=sol.result %>"><%=status[sol.result] %></td>
+				</tr>
+				<tr>
+					<th>Time</th>
+					<td><%=sol.timeUsage %></td>
+				</tr>
+				<tr>
+					<th>Memory</th>
+					<td><%=sol.memoryUsage%></td>
+				</tr>
+				<tr>
+					<th>Submit Time</th>
+					<td><%=sol.date.format('yyyy-MM-dd hh:mm:ss') %></td>
+				</tr>
+			</table>
+		</div>
+		<div class="col-sm-9">
+			<pre class="prettyprint linenums"><%= sol.code %></pre>
+		</div>
+	</div>
+</div>

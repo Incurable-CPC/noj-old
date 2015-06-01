@@ -4,6 +4,7 @@ var test = require('assert');
 function User(user) {
   this.name = (user.name)? user.name: '';
   this.password = (user.password)? user.password: '';
+  this.isAdmin = (user.isAdmin)? Boolean(user.isAdmin): false;
 };
 module.exports = User;
 
@@ -40,6 +41,7 @@ User.prototype.update = function update(callback) {
         test.equal(null, err);
         collection.findOneAndUpdate({ name : user.name }, { $set: diff }, function(err) {
           test.equal(null, err);
+          db.close();
           if (callback) callback(err);
         });
       });

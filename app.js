@@ -40,6 +40,7 @@ app.use(function(req, res, next) {
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
   res.locals.js = res.locals.css = [];
+  res.locals.status = require('./models/solution').status;
   next();
 });
 

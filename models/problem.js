@@ -16,9 +16,9 @@ function Problem(pro) {
   this.sampleOutput = (pro.sampleOutput)? pro.sampleOutput: '';
   this.source = (pro.source)? pro.source: '';
   this.hint = (pro.hint)? pro.hint: '';
-  this.testdataNum = (pro.testdataNum)? pro.testdataNum: 0;
-  this.submit = (pro.submit)? pro.submit: 0;
-  this.accepted = (pro.accepted)? pro.accepted: 0;
+  this.testdataNum = (pro.testdataNum)? Number(pro.testdataNum): 0;
+  this.submit = (pro.submit)? Number(pro.submit): 0;
+  this.accepted = (pro.accepted)? Number(pro.accepted): 0;
 };
 module.exports = Problem;
 
@@ -59,6 +59,7 @@ Problem.prototype.update = function update(callback) {
         test.equal(null, err);
         collection.findOneAndUpdate({ pid: pro.pid }, { $set: diff }, function(err) {
           test.equal(null, err);
+          db.close();
           if (callback) callback(err);
         });
       });
@@ -93,11 +94,13 @@ Problem.getList = function getList(page, callback) {
       collection.find({ pid: {
         $gte: 950+page*50,
         $lt: 1000+page*50
-      } }, { pid: 1, title: 1, totalSubmit: 1, acceptSubmit: 1}).toArray(function(err, docs) {
+      } }, { pid: 1, title: 1, submit: 1, accepted: 1}).toArray(function(err, docs) {
         test.equal(null, err);
         db.close();
         if (docs) {
-          callback(err, docs);
+          callback(err, docs.map(function(doc) {
+            return new Problem(doc);
+          }));
         } else {
           callback(err, null);
         }
@@ -110,6 +113,7 @@ Problem.prototype.addTestdata = function addTestdata(testdata, callback) {
   var pro = new Problem(this);
   var tmp = {};
   var datafiles = [];
+  if (!testdata) { callback(); return; }
   testdata.forEach(function(file) {
     var name = file.originalname;
     name = name.slice(0, name.lastIndexOf('.'));
@@ -120,6 +124,7 @@ Problem.prototype.addTestdata = function addTestdata(testdata, callback) {
   });
   this.testdataNum += datafiles.length;
   this.update();
+  if (!datafiles) { callback(); return; }
   var dir = path.join('sandbox', 'testdata', String(pro.pid));
   mkdirp(dir, function(err) {
     test.equal(null, err);

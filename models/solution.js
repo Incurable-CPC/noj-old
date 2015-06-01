@@ -43,8 +43,8 @@ function Solution(sol) {
   this.date = (sol.date)? sol.date: new Date();
   this.codeLength = (sol.codeLength)? sol.codeLength: sol.code.length;
   this.result = (sol.result)? Number(sol.result): 0;
-  this.timeUsage = (sol.timeUsage)? Number(sol.timeUsage): '---';
-  this.memoryUsage = (sol.memoryUsage)? Number(sol.memoryUsage): '---';
+  this.timeUsage = (sol.timeUsage)? sol.timeUsage: '---';
+  this.memoryUsage = (sol.memoryUsage)? sol.memoryUsage: '---';
 };
 module.exports = Solution;
 
@@ -86,6 +86,7 @@ Solution.prototype.update = function update(callback) {
         test.equal(null, err);
         collection.findOneAndUpdate({ sid: sol.sid }, { $set: diff }, function(err) {
           test.equal(null, err);
+          db.close();
           if (callback) callback(err);
         });
       });
@@ -122,7 +123,9 @@ Solution.getList = function getList(page, callback) {
         test.equal(null, err);
         db.close();
         if (docs) {
-          callback(err, docs);
+          callback(err, docs.map(function(doc) {
+            return new Solution(doc);
+          }));
         } else {
           callback(err, null);
         }
@@ -154,13 +157,23 @@ Solution.prototype.judge = function judge() {
                 sol.result = Number(result[0]);
                 sol.timeUsage = result[1]+' ms';
                 sol.memoryUsage = result[2]+' KB';
-                sol.update();
+                sol.update(function(err) {
+                  pro.submit++;
+                  if (sol.result == STATUS_AC) pro.accepted++;
+                  pro.update();
+                });
               });
             });
           });
         } else {
           sol.result = STATUS_CE;
-          sol.update();
+          sol.update(function(err) {
+            Problem.get(sol.pid, function(err, pro) {
+              test(null, err);
+              pro.submit++;
+              pro.update();
+            });
+          });
         }
       });
     });

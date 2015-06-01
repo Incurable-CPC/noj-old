@@ -17,3 +17,18 @@ textarea {
 	font-weight: bolder;
 	color: #000099;
 }
+
+.status-0 { color: grey; }
+.status-1 { color: grey; }
+.status-2 { color: orange; }
+.status-3 { color: orange; }
+.status-4 { color: green; font-weight: bold; }
+.status-5 { color: red; }
+.status-6 { color: red; }
+.status-7 { color: red; }
+.status-8 { color: red; }
+.status-9 { color: red; }
+.status-10 { color: red; }
+.status-11 { color: red; }
+.status-12 { color: red; }
+.status-13 { color: red; }
