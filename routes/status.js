@@ -10,14 +10,17 @@ router.get('/', function(req, res, next) {
 
 router.get('/page/:page', function(req, res, next) {
   var page = Number(req.params['page']);
-  Solution.getList(page, function(err, list) {
-    for (var i = 0; i < list.length; i++) {
-      list[i].canView = (req.session.user)&&(list[i].user == req.session.user.name);
+  console.log(require('util').inspect(Solution));
+  Solution.getList({ num: 50, page: page }, function(err, solList) {
+    if (req.session['user']) {
+      solList.forEach(function(sol) {
+        sol.canView = sol.user == req.session['user'].name;
+      });
     }
     return res.render('status', {
       title: 'status',
       js: [ '/js/status.js' ],
-      solList: list,
+      solList: solList,
     });
   });
 });

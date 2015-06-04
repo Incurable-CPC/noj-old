@@ -1,5 +1,6 @@
 var Solution = require('../models/solution');
 var Problem = require('../models/problem');
+var User = require('../models/user');
 var express = require('express');
 var marked = require('marked');
 var router = express.Router();
@@ -15,11 +16,18 @@ router.get('/', function(req, res, next) {
 
 router.get('/list/:page', function(req, res, next) {
   var page = Number(req.params['page']);
+  var username = (req.session['user'])? req.session['user'].name: '';
   Problem.getList(page, function(err, list) {
-    return res.render('problems/list', {
-      title: 'problems',
-      js: [ '/js/problems/problems.js' ],
-      proList: list
+    User.get(username, function(err, user) {
+      list.forEach(function(pro) {
+        pro.solved = ((!!user)&&(!!user.solved[pro.pid]));
+        pro.tried = ((!!user)&&(!!user.tried[pro.pid]));
+      });
+      return res.render('problems/list', {
+        title: 'problems',
+        js: [ '/js/problems/problems.js' ],
+        proList: list
+      });
     });
   });
 });
@@ -58,13 +66,13 @@ router.post('/add', function(req, res, next) {
 
 
 router.get('/problem/:pid', function(req, res, next) {
-  var pid = req.params['pid'];
+  var pid = Number(req.params['pid']);
   Problem.get(pid, function(err, pro) {
     if (pro) {
       return res.render('problems/problem', {
         title: pro.title,
         pro: pro,
-        js: [ '/js/problems/problems.js' ],
+        js: [ '/js/problems/problems.js' ]
       });
     } else {
       req.flash('error', 'Problem not exist');
@@ -73,11 +81,36 @@ router.get('/problem/:pid', function(req, res, next) {
   });
 });
 
+router.get('/statistics/:pid', function(req, res, next) {
+  var pid = Number(req.params['pid']);
+  Problem.get(pid, function(err, pro) {
+    pro.getStatistics(1, function(err, pro) {
+      if (req.session['user']) {
+        pro.solList.forEach(function(sol) {
+          sol.canView = sol.user == req.session['user'].name
+        });
+      }
+      return res.render('problems/statistics', {
+        title: pro.title+' - statistics',
+        pro: pro,
+        css: [ '/css/statistics.css' ]
+      });
+    });
+  });
+});
+
+router.get('/submit/:pid', common.checkLogin);
 router.get('/submit/:pid', function(req, res, next) {
-  var pid = req.params['pid'];
+  var pid = Number(req.params['pid']);
   return res.render('problems/submit', {
     title: 'submit',
-    pid: pid
+    pid: pid,
+    js: [
+      '/js/input-file.js'
+    ],
+    css: [
+      '/css/input-file.css'
+    ]
   });
 });
 
@@ -85,9 +118,20 @@ router.post('/submit/:pid', common.checkLogin);
 router.post('/submit/:pid', function(req, res, next) {
   var sol = req.body;
   sol.user = req.session.user.name;
-  sol = new Solution(sol);
-  sol.save(function(err) {
-    req.flash('success', 'Submit success');
-    return res.redirect('/status');
-  });
+  var file = req.files['code-file'];
+  var work = function work(sol) {
+    sol = new Solution(sol);
+    sol.save(function(err) {
+      req.flash('success', 'Submit success');
+      return res.redirect('/status');
+    });
+  };
+  if (file) {
+    file = path.join('tmp', file.name);
+    fs.readFile(file, function(err, code) {
+      sol.code = code;
+      fs.unlink(file);
+      work(sol);
+    });
+  } else work(sol);
 });

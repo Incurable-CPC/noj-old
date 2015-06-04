@@ -1,3 +1,37 @@
+exports.status = [
+  'Pending',
+  'Pending Rejudging',
+  'Compiling',
+  'Running & Judging',
+  'Accepted',
+  'Presentation Error',
+  'Wrong Answer',
+  'Time Limit Exceed',
+  'Memory Limit Exceed',
+  'Output Limit Exceed',
+  'Runtime Error',
+  'Compile Error',
+  'Compile OK',
+  'Test Running Done'
+];
+
+exports.STATUS = {
+  WT0: 0,
+  WT1 : 1,
+  CI : 2,
+  RI : 3,
+  AC : 4,
+  PE : 5,
+  WA : 6,
+  TLE : 7,
+  MLE : 8,
+  OLE : 9,
+  RE : 10,
+  CE : 11,
+  CO : 12,
+  TR : 13
+};
+
 exports.postHandle = function postHandle(obj) {
   var ret = {};
   for (var key in obj) {
@@ -12,7 +46,7 @@ exports.postHandle = function postHandle(obj) {
 exports.checkLogin = function checkLogin(req, res, next) {
   if (!req.session['user']) {
     req.flash('error', 'Not loged');
-    return res.redirect('/');
+    return res.redirect('/login');
   }
   next();
 }

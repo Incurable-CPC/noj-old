@@ -19,6 +19,19 @@
 			</div>
 		</div>
 		<%-partial('../partial/textarea', { name: 'code', label: 'Code', width: 7, height: 20 }) %>
+		<div class="form-group form-group">
+			<label for="code-file" class="col-sm-2 control-label">Or Choose File</label>
+			<div class="input-file col-sm-3">
+				<div class="input-group">
+					<span class="input-group-btn">
+						<span class="btn btn-default btn-file">
+							Browse<input type="file" id="code-file" name="code-file">
+						</span>
+					</span>
+					<input type="text" class="form-control" readonly>
+				</div>
+			</div>
+		</div>
 		<div class="form-group">
 			<div class="col-sm-offset-2 col-sm-2">
 				<button id="submit" class="btn btn-success">Submit</button>

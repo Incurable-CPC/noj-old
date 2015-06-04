@@ -1,3 +1,5 @@
+var STATUS = require('../common').STATUS;
+var Model = require('./model');
 var mongodb = require('./db');
 var mkdirp = require('mkdirp');
 var test = require('assert');
@@ -24,87 +26,39 @@ module.exports = Problem;
 
 Problem.prototype.save = function save(callback) {
   var problem = new Problem(this);
-  mongodb.open(function(err, db) {
+  mongodb.collection('problems', function(err, collection) {
     test.equal(null, err);
-    db.collection('problems', function(err, collection) {
+    collection.ensureIndex({ pid: 1 }, { unique: true }, function(err, result) {
       test.equal(null, err);
-      collection.ensureIndex({ pid: 1 }, { unique: true }, function(err, result) {
-        test.equal(null, err);
-        collection.findOne({}, { sort: [[ 'pid', -1 ]], returnKey: true }, function (err, pro) {
-          problem.pid = (pro)? pro.pid+1: 1000;
-          collection.insertOne(problem, { safe: true }, function(err, result) {
-            test.equal(null, err);
-            db.close();
-            callback(err, problem);
-          });
-        });
-      });
-    });
-  });
-};
-
-Problem.prototype.update = function update(callback) {
-  var newPro = new Problem(this);
-  Problem.get(newPro.pid, function(err, pro) {
-    test.equal(null, err);
-    var diff = {};
-    for (var key in pro) {
-      if (newPro[key] != pro[key])
-        diff[key] = newPro[key];
-    }
-    if (!diff) return;
-    mongodb.open(function(err, db) {
-      test.equal(null, err);
-      db.collection('problems', function(err, collection) {
-        test.equal(null, err);
-        collection.findOneAndUpdate({ pid: pro.pid }, { $set: diff }, function(err) {
+      collection.findOne({}, { sort: [[ 'pid', -1 ]], returnKey: true }, function (err, pro) {
+        problem.pid = (pro)? pro.pid+1: 1000;
+        collection.insertOne(problem, { safe: true }, function(err, result) {
           test.equal(null, err);
-          db.close();
-          if (callback) callback(err);
+          callback(err, problem);
         });
       });
     });
   });
 };
 
-Problem.get = function get(pid, callback) {
-  mongodb.open(function(err, db) {
-    test.equal(null, err);
-    db.collection('problems', function(err, collection) {
-      test.equal(null, err);
-      collection.findOne({ pid: Number(pid) }, function(err, doc) {
-        test.equal(null, err);
-        db.close();
-        if (doc) {
-          var pro = new Problem(doc);
-          callback(err, pro);
-        } else {
-          callback(err, null);
-        }
-      });
-    });
-  });
-};
+Problem.prototype.update = Model.update(Problem, 'problems', 'pid');
+Problem.get = Model.get(Problem, 'problems', 'pid');
 
 Problem.getList = function getList(page, callback) {
-  mongodb.open(function(err, db) {
+  mongodb.collection('problems', function(err, collection) {
     test.equal(null, err);
-    db.collection('problems', function(err, collection) {
+    collection.find({ pid: {
+      $gte: 950+page*50,
+      $lt: 1000+page*50
+    } }, { pid: 1, title: 1, submit: 1, accepted: 1}).toArray(function(err, docs) {
       test.equal(null, err);
-      collection.find({ pid: {
-        $gte: 950+page*50,
-        $lt: 1000+page*50
-      } }, { pid: 1, title: 1, submit: 1, accepted: 1}).toArray(function(err, docs) {
-        test.equal(null, err);
-        db.close();
-        if (docs) {
-          callback(err, docs.map(function(doc) {
-            return new Problem(doc);
-          }));
-        } else {
-          callback(err, null);
-        }
-      });
+      if (docs) {
+        callback(err, docs.map(function(doc) {
+          return new Problem(doc);
+        }));
+      } else {
+        callback(err, null);
+      }
     });
   });
 };
@@ -145,3 +99,38 @@ Problem.prototype.addTestdata = function addTestdata(testdata, callback) {
     });
   });
 };
+
+Problem.prototype.getStatistics = function getStatistics(page, callback) {
+  var pro = new Problem(this);
+  var Solution = require('./solution');
+  var User = require('./user');
+  Solution.getList({
+    num: 20, page: page,
+    cond: { result: STATUS.AC, pid: pro.pid },
+    sortKey: { codeLength : 1 }
+  }, function(err, solList) {
+    test.equal(null, err);
+    pro.solList = solList;
+    pro.result = [];
+    var cnt = 0;
+    var query = {};
+    query['tried.'+pro.pid] = true;
+    User.count(query, function(err, res) {
+      pro.userTried = res;
+      query = {};
+      query['solved.'+pro.pid] = true;
+      User.count(query, function(err, res) {
+        pro.userSolved = res;
+        Object.keys(STATUS).forEach(function(key, index) {
+          Solution.count({ pid: pro.pid, result: index }, function(err, res) {
+            cnt++;
+            pro.result[index] = res;
+            if (cnt == Object.keys(STATUS).length) {
+              callback(err, pro);
+            }
+          });
+        });
+      });
+    });
+  });
+}

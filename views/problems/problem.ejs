@@ -1,43 +1,58 @@
 <% layout('layout') %>
-<div>
-	<div class="text-center">
-		<div><h1><%=pro.pid %> <%=pro.title %></h1></div>
-		<div>
-			Time Limit: <span class="label label-warning"><%=pro.timeLimit %>ms</span>&nbsp;&nbsp;
-			Memory Limit: <span class="label label-warning"><%=pro.memoryLimit %>MB</span>
+<div class="contain">
+	<div class="row">
+		<div class="col-sm-1"></div>
+		<div class="col-sm-10">
+			<div class="text-center">
+				<div><h1><%=pro.pid %> <%=pro.title %></h1></div>
+				<div>
+					Time Limit: <span class="label label-warning"><%=pro.timeLimit %>ms</span>&nbsp;&nbsp;
+					Memory Limit: <span class="label label-warning"><%=pro.memoryLimit %>MB</span>
+				</div>
+				<div>
+					Submit: <%=pro.submit %>&nbsp;&nbsp;
+					Accepted: <%=pro.accepted %>
+			</div>
+			</div>
+			<div class="text-left">
+				<div>
+					<div class="info">Description</div>
+					<div class="detail"><%-pro.description %></div>
+				</div>
+				<div>
+					<div class="info">Input</div>
+					<div class="detail"><%-pro.input %></div>
+				</div>
+				<div>
+					<div class="info">Output</div>
+					<div class="detail"><%-pro.output %></div>
+				</div>
+				<div>
+					<div class="info">Sampe Input</div>
+					<div class="detail"><pre><%=pro.sampleInput %></pre></div>
+				</div>
+				<div>
+					<div class="info">Sample Output</div>
+					<div class="detail"><pre><%=pro.sampleOutput %></pre></div>
+				</div>
+				<div>
+					<div class="info">Hint</div>
+					<div class="detail"><%=pro.hint %></div>
+				</div>
+				<div>
+					<div class="info">Source</div>
+					<div class="detail"><%=pro.source %></div>
+				</div>
+			</div>
+			<div class="text-center">
+				<div class="btn-group">
+					<a id="submit" class="btn btn-success" href="/problems/submit/<%=pro.pid %>">Submit</a>
+					<a id="status" class="btn btn-default" href="/problems/status/<%=pro.pid %>">Status</a>
+					<a id="statistics" class="btn btn-default" href="/problems/statistics/<%=pro.pid %>">Statistics</a>
+					<a id="discuss" class="btn btn-default" href="/problems/discuss/<%=pro.pid %>">Discuss</a>
+				</div>
+			</div>
 		</div>
-	</div>
-	<div class="text-left">
-		<div>
-			<div class="info">Description</div>
-			<div class="detail"><%-pro.description %></div>
-		</div>
-		<div>
-			<div class="info">Input</div>
-			<div class="detail"><%-pro.input %></div>
-		</div>
-		<div>
-			<div class="info">Output</div>
-			<div class="detail"><%-pro.output %></div>
-		</div>
-		<div>
-			<div class="info">Sampe Input</div>
-			<div class="detail"><pre><%=pro.sampleInput %></pre></div>
-		</div>
-		<div>
-			<div class="info">Sample Output</div>
-			<div class="detail"><pre><%=pro.sampleOutput %></pre></div>
-		</div>
-		<div>
-			<div class="info">Hint</div>
-			<div class="detail"><%=pro.hint %></div>
-		</div>
-		<div>
-			<div class="info">Source</div>
-			<div class="detail"><%=pro.source %></div>
-		</div>
-		<div class="text-center">
-			<a id="submit" class="btn btn-sm btn-success" href="/problems/submit/<%=pro.pid %>">Submit</a>
-		</div>
+		<div class="col-sm-1"></div>
 	</div>
 </div>
