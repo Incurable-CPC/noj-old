@@ -1,11 +1,4 @@
-<tr>
-	<td >
-		<% if (pro.solved) { %> 
-			<p class="status-4">AC</p>
-		<% } else if (pro.tried) { %>
-			<p class="status-5">NO</p>
-		<% } %>
-	</td>
+<tr class="<%=(pro.solved)?'success': (pro.tried)?'danger': '' %>">
 	<td><%=pro.pid %></td>
 	<td><a href="/problems/problem/<%=pro.pid %>"><%=pro.title %></a></td>
 	<td>
