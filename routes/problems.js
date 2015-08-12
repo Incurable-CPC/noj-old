@@ -60,28 +60,35 @@ router.post('/add', function(req, res, next) {
       });
     });
     req.flash('success', 'Add problem success');
-    return res.redirect('/problems/add');
+    return res.redirect('/problems/problem/'+pro.pid);
   });
 });
 
 
-router.get('/problem/:pid', function(req, res, next) {
+router.all('/:pid*', function(req, res, next) {
   var pid = Number(req.params['pid']);
   Problem.get(pid, function(err, pro) {
-    if (pro) {
-      return res.render('problems/problem', {
-        title: pro.title,
-        pro: pro,
-        js: [ '/js/problems/problems.js' ]
-      });
-    } else {
+    if ((!pro)||(pro.isHidden)) {
       req.flash('error', 'Problem not exist');
       return res.redirect('/');
+    } else {
+      next();
     }
   });
 });
 
-router.get('/statistics/:pid', function(req, res, next) {
+router.get('/:pid', function(req, res, next) {
+  var pid = Number(req.params['pid']);
+  Problem.get(pid, function(err, pro) {
+    return res.render('problems/problem', {
+      title: pro.title,
+      pro: pro,
+      js: [ '/js/problems/problems.js' ]
+    });
+  });
+});
+
+router.get('/:pid/statistics', function(req, res, next) {
   var pid = Number(req.params['pid']);
   Problem.get(pid, function(err, pro) {
     pro.getStatistics(1, function(err, pro) {
@@ -99,27 +106,21 @@ router.get('/statistics/:pid', function(req, res, next) {
   });
 });
 
-router.get('/submit/:pid', common.checkLogin);
-router.get('/submit/:pid', function(req, res, next) {
+router.get('/:pid/submit', common.checkLogin);
+router.get('/:pid/submit', function(req, res, next) {
   var pid = Number(req.params['pid']);
   return res.render('problems/submit', {
     title: 'submit',
-    pid: pid,
-    js: [
-      '/js/input-file.js'
-    ],
-    css: [
-      '/css/input-file.css'
-    ]
+    pid: pid
   });
 });
 
-router.post('/submit/:pid', common.checkLogin);
-router.post('/submit/:pid', function(req, res, next) {
+router.post('/:pid/submit', common.checkLogin);
+router.post('/:pid/submit', function(req, res, next) {
   var sol = req.body;
   sol.user = req.session.user.name;
   var file = req.files['code-file'];
-  var work = function work(sol) {
+  var submit = function submit(sol) {
     sol = new Solution(sol);
     sol.save(function(err) {
       req.flash('success', 'Submit success');
@@ -127,11 +128,11 @@ router.post('/submit/:pid', function(req, res, next) {
     });
   };
   if (file) {
-    file = path.join('tmp', file.name);
-    fs.readFile(file, function(err, code) {
+    var filename = path.join('tmp', file.name);
+    fs.readFile(filename, function(err, code) {
       sol.code = code;
-      fs.unlink(file);
-      work(sol);
+      fs.unlink(filename);
+      submit(sol);
     });
-  } else work(sol);
+  } else submit(sol);
 });

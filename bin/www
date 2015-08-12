@@ -26,10 +26,26 @@ var server = http.createServer(app);
  * Listen on provided port, on all network interfaces.
  */
 
-mongodb.open(function(err) {
-	server.listen(port);
-	server.on('error', onError);
-	server.on('listening', onListening);
+var Solution = require('../models/solution');
+var Contest = require('../models/contest');
+var Problem = require('../models/problem');
+
+mongodb.open(function(err, db) {
+  var cnt = 0;
+  var init = [];
+  init.push(Solution.init);
+  init.push(Contest.init);
+  init.push(Problem.init);
+  for (var i = 0; i < init.length; i++) {
+	  init[i](function() {
+		  cnt++;
+		  if (cnt == init.length) {
+			  server.listen(port);
+			  server.on('error', onError);
+			  server.on('listening', onListening);
+		  }
+	  });
+  }
 });
 
 /**

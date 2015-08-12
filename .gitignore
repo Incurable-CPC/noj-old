@@ -1,5 +1,6 @@
 public/js/lib/*
 node_modules/*
+.idea/*
 *.swp
 test.js
 sandbox/*

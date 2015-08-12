@@ -7,7 +7,7 @@ var path = require('path');
 var fs = require('fs');
 
 function Problem(pro) {
-  this.pid = (pro.pid)? pro.pid: 1000;
+  this.pid = (pro.pid)? Number(pro.pid): 1000;
   this.title = (pro.title)? pro.title: '';
   this.timeLimit = (pro.timeLimit)? Number(pro.timeLimit): 1000;
   this.memoryLimit = (pro.memoryLimit)? Number(pro.memoryLimit): 256;
@@ -21,28 +21,41 @@ function Problem(pro) {
   this.testdataNum = (pro.testdataNum)? Number(pro.testdataNum): 0;
   this.submit = (pro.submit)? Number(pro.submit): 0;
   this.accepted = (pro.accepted)? Number(pro.accepted): 0;
+  this.isHidden = Boolean(pro.isHidden);
 };
 module.exports = Problem;
 
+var problemCnt;
+Problem.init = function init(callback) {
+  mongodb.collection('problems', function(err, collection) {
+    test.equal(null, err);
+    collection.findOne({}, { sort: [[ 'pid', -1 ]], returnKey: true }, function (err, pro) {
+      problemCnt = (pro)? pro.pid-999: 0;
+      if (callback) callback(err);
+    });
+  });
+};
+
 Problem.prototype.save = function save(callback) {
-  var problem = new Problem(this);
+  var pro = new Problem(this);
   mongodb.collection('problems', function(err, collection) {
     test.equal(null, err);
     collection.ensureIndex({ pid: 1 }, { unique: true }, function(err, result) {
       test.equal(null, err);
-      collection.findOne({}, { sort: [[ 'pid', -1 ]], returnKey: true }, function (err, pro) {
-        problem.pid = (pro)? pro.pid+1: 1000;
-        collection.insertOne(problem, { safe: true }, function(err, result) {
-          test.equal(null, err);
-          callback(err, problem);
-        });
+      pro.pid = problemCnt+1000;
+      problemCnt++;
+      collection.insertOne(pro, { safe: true }, function(err, result) {
+        test.equal(null, err);
+        callback(err, pro);
       });
     });
   });
 };
 
-Problem.prototype.update = Model.update(Problem, 'problems', 'pid');
-Problem.get = Model.get(Problem, 'problems', 'pid');
+var model = new Model(Problem, 'problems', 'pid');
+Problem.prototype.update = model.update();
+Problem.get = model.get();
+Problem.count = model.count();
 
 Problem.getList = function getList(page, callback) {
   mongodb.collection('problems', function(err, collection) {
@@ -50,11 +63,14 @@ Problem.getList = function getList(page, callback) {
     collection.find({ pid: {
       $gte: 950+page*50,
       $lt: 1000+page*50
-    } }, { pid: 1, title: 1, submit: 1, accepted: 1}).toArray(function(err, docs) {
+    } }, { pid: 1, title: 1, submit: 1, accepted: 1, isHidden: 1}).
+      toArray(function(err, docs) {
       test.equal(null, err);
       if (docs) {
         callback(err, docs.map(function(doc) {
           return new Problem(doc);
+        }).filter(function(pro) {
+          return !pro.isHidden;
         }));
       } else {
         callback(err, null);
@@ -76,8 +92,8 @@ Problem.prototype.addTestdata = function addTestdata(testdata, callback) {
     if ((tmp[name].in)&&(tmp[name].out))
       datafiles.push(tmp[name]);
   });
-  this.testdataNum += datafiles.length;
-  this.update();
+  pro.testdataNum += datafiles.length;
+  pro.update();
   if (!datafiles) { callback(); return; }
   var dir = path.join('sandbox', 'testdata', String(pro.pid));
   mkdirp(dir, function(err) {

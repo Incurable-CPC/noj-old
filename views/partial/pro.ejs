@@ -1,6 +1,6 @@
 <tr class="<%=(pro.solved)?'success': (pro.tried)?'danger': '' %>">
 	<td><%=pro.pid %></td>
-	<td><a href="/problems/problem/<%=pro.pid %>"><%=pro.title %></a></td>
+	<td><a href="/problems/<%=pro.pid %>"><%=pro.title %></a></td>
 	<td>
 		<% if (pro.submit == 0) { %>
 			0

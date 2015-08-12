@@ -32,10 +32,10 @@
 				</div>
 				<div id="navbar" class="navbar-collapse collapse">
 					<ul class="nav navbar-nav">
-						<li id="index"><a href="/">index</a></li>
-						<li id="problems"><a href="/problems">Problems</a></li>
-						<li id="status"><a href="/status">Status</a></li>
-						<li id="contests"><a href="/contests">Contests</a></li>
+						<li id="problems"><a href="/contests/<%=con.cid %>">Problems</a></li>
+						<li id="status"><a href="/contests/<%=con.cid %>/status">Status</a></li>
+						<li id="standing"><a href="/contests/<%=con.cid %>/standing">Standing</a></li>
+						<li id="clarification"><a href="/contests/<%=con.cid %>/clarification">Clarification</a></li>
 
 					</ul>
 					<ul class="nav navbar-nav navbar-right">
@@ -63,7 +63,7 @@
 				</div>
 			<% } %>
 			<%- body %>
-			<br />
+			<hr />
 			<footer>
 			</footer>
 		</div>

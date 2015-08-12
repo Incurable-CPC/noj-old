@@ -1,0 +1,46 @@
+<% layout(layoutView) %>
+<form class="form-horizontal" method="post" enctype="multipart/form-data">
+	<fieldset>
+		<legend>Add Contest</legend>
+		<%-partial('../partial/input', { name: 'title', label: 'Title', type: 'text', width: 5, }) %>
+		<div class="form-group">
+			<label for="start" class="col-sm-2 control-label">Start Time</label>
+			<div class="col-sm-3">
+				<input type="text" class="form-control datetimepicker" name="start" id="start">
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="end" class="col-sm-2 control-label">End Time</label>
+			<div class="col-sm-3">
+				<input type="text" class="form-control datetimepicker" name="end" id="end">
+			</div>
+		</div>
+		<script type="text/javascript">
+$(function() {
+	$('.datetimepicker').datetimepicker({
+		locale: 'en',
+		format: 'YYYY-MM-DD HH:mm:ss'
+	});
+});
+		</script>
+		<!--div class="form-group">
+			<div class="col-sm-offset-2 radio col-sm-1">
+				<label>
+					<input type="radio" name="is-private" id="is-private" value="0">
+					Public
+				</label>
+			</div>
+			<div class="radio col-sm-1">
+				<label>
+					<input type="radio" name="is-private" id="is-private" value="1">
+					Private
+				</label>
+			</div>
+		</div-->
+		<div class="form-group">
+			<div class="col-sm-offset-2 col-sm-2">
+				<button id="submit" class="btn btn-sm btn-block btn-success">Add</button>
+			</div>
+		</div>
+	</fieldset>
+</form>

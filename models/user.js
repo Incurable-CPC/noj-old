@@ -5,7 +5,7 @@ var test = require('assert');
 function User(user) {
   this.name = (user.name)? user.name: '';
   this.password = (user.password)? user.password: '';
-  this.isAdmin = (user.isAdmin)? Boolean(user.isAdmin): false;
+  this.isAdmin = Boolean(user.isAdmin);
   this.solved = (user.solved)? user.solved: {};
   this.tried = (user.tried)? user.tried: {};
 };
@@ -19,12 +19,13 @@ User.prototype.save = function save(callback) {
       test.equal(null, err);
       collection.insertOne(user, { safe: true }, function(err, result) {
         test.equal(null, err);
-        callback(err, result);
+        callback(err, user);
       });
     });
   });
 };
 
-User.prototype.update = Model.update(User, 'users', 'name');
-User.get = Model.get(User, 'users', 'name');
-User.count = Model.count('users');
+var model = new Model(User, 'users', 'name');
+User.prototype.update = model.update();
+User.get = model.get();
+User.count = model.count();

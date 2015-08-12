@@ -10,7 +10,7 @@ int main(int argc, char* argv[]) {
 	int lang = atoi(argv[1]);
 	char *dir = argv[2];
 	int result = 0;
-	chdir("sandbox");
+	chdir("sandbox/submissions");
 	chdir(dir);
 	switch (lang) {
 		case GNU_C:

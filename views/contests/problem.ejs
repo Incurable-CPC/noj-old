@@ -10,7 +10,7 @@ MathJax.Hub.Config({
 		<div class="col-sm-1"></div>
 		<div class="col-sm-10">
 			<div class="text-center">
-				<div><h1><%=pro.pid %> <%=pro.title %></h1></div>
+				<div><h1><%=pro.id %> <%=pro.title %></h1></div>
 				<div>
 					Time Limit: <span class="label label-warning"><%=pro.timeLimit %>ms</span>&nbsp;&nbsp;
 					Memory Limit: <span class="label label-warning"><%=pro.memoryLimit %>MB</span>
@@ -41,21 +41,12 @@ MathJax.Hub.Config({
 					<div class="info">Sample Output</div>
 					<div class="detail"><pre><%=pro.sampleOutput %></pre></div>
 				</div>
-				<div>
-					<div class="info">Hint</div>
-					<div class="detail"><%=pro.hint %></div>
-				</div>
-				<div>
-					<div class="info">Source</div>
-					<div class="detail"><%=pro.source %></div>
-				</div>
 			</div>
 			<div class="text-center">
 				<div class="btn-group">
-					<a id="submit" class="btn btn-success" href="/problems/<%=pro.pid %>/submit">Submit</a>
-					<a id="status" class="btn btn-default" href="/status">Status</a>
-					<a id="statistics" class="btn btn-default" href="/problems/<%=pro.pid %>/statistics">Statistics</a>
-					<a id="discuss" class="btn btn-default" href="/problems/discuss/<%=pro.pid %>">Discuss</a>
+					<a id="submit" class="btn btn-success" href="/contests/<%=con.cid%>/problem/<%=pro.id %>/submit">Submit</a>
+					<a id="Clarification" class="btn btn-default" href="/contests/<%=con.cid%>/clarification/problem/<%=pro.id %>/">Clarification</a>
+					<a id="back" class="btn btn-default" href="/contests/<%=con.cid%>">Back</a>
 				</div>
 			</div>
 		</div>

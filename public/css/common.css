@@ -32,3 +32,8 @@ textarea {
 .status-11 { color: red; }
 .status-12 { color: red; }
 .status-13 { color: red; }
+.contest-status-0 { color: blue; }
+.contest-status-1 { color: red; }
+.contest-status-2 { color: grey; }
+.contest-type-0 { color: red; }
+.contest-type-1 { color: blue; }

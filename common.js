@@ -1,36 +1,19 @@
-exports.status = [
-  'Pending',
-  'Pending Rejudging',
-  'Compiling',
-  'Running & Judging',
-  'Accepted',
-  'Presentation Error',
-  'Wrong Answer',
-  'Time Limit Exceed',
-  'Memory Limit Exceed',
-  'Output Limit Exceed',
-  'Runtime Error',
-  'Compile Error',
-  'Compile OK',
-  'Test Running Done'
-];
+exports.status = [ 'Pending', 'Pending Rejudging', 'Compiling', 'Running & Judging',
+  'Accepted', 'Presentation Error',
+  'Wrong Answer', 'Time Limit Exceed', 'Memory Limit Exceed', 'Output Limit Exceed',
+  'Runtime Error', 'Compile Error',
+  'Compile OK', 'Test Running Done' ];
+exports.STATUS = { WT0: 0, WT1 : 1, CI : 2, RI : 3,
+  AC : 4, PE : 5,
+  WA : 6, TLE : 7, MLE : 8, OLE : 9,
+  RE : 10, CE : 11,
+  CO : 12, TR : 13 };
 
-exports.STATUS = {
-  WT0: 0,
-  WT1 : 1,
-  CI : 2,
-  RI : 3,
-  AC : 4,
-  PE : 5,
-  WA : 6,
-  TLE : 7,
-  MLE : 8,
-  OLE : 9,
-  RE : 10,
-  CE : 11,
-  CO : 12,
-  TR : 13
-};
+exports.contestStatus = [ 'Pending', 'Running', 'Ended' ];
+exports.CONTEST_STATUS = { PENDING: 0, RUNNING: 1, ENDED: 2 };
+exports.contestType = [ 'Public', 'Private' ];
+exports.CONTEST_TYPE = { PUBLIC: 0, PRIVATE: 1 };
+
 
 exports.postHandle = function postHandle(obj) {
   var ret = {};
@@ -43,6 +26,10 @@ exports.postHandle = function postHandle(obj) {
   return ret;
 };
 
+exports.refuse = function(req, res) {
+  req.flash('error', 'Permission denied');
+  return res.redirect('/');
+}
 exports.checkLogin = function checkLogin(req, res, next) {
   if (!req.session['user']) {
     req.flash('error', 'Not loged');

@@ -1,3 +1,4 @@
+/// <reference path="typings/tsd.d.ts"/>
 var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
@@ -39,8 +40,11 @@ app.use(function(req, res, next) {
   res.locals.user = req.session.user;
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
+  res.locals.layoutView = 'layout';
   res.locals.js = res.locals.css = [];
   res.locals.status = require('./common').status;
+  res.locals.contestStatus = require('./common').contestStatus;
+  res.locals.contestType = require('./common').contestType;
   res.locals.STATUS = require('./common').STATUS;
   next();
 });
@@ -49,10 +53,12 @@ app.use(function(req, res, next) {
 var routes = require('./routes/index');
 var status = require('./routes/status');
 var problems = require('./routes/problems');
+var contests = require('./routes/contests');
 
 app.use('/', routes);
 app.use('/status', status);
 app.use('/problems', problems);
+app.use('/contests', contests);
 
 
 // catch 404 and forward to error handler

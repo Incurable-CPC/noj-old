@@ -10,7 +10,6 @@ router.get('/', function(req, res, next) {
 
 router.get('/page/:page', function(req, res, next) {
   var page = Number(req.params['page']);
-  console.log(require('util').inspect(Solution));
   Solution.getList({ num: 50, page: page }, function(err, solList) {
     if (req.session['user']) {
       solList.forEach(function(sol) {
@@ -20,7 +19,7 @@ router.get('/page/:page', function(req, res, next) {
     return res.render('status', {
       title: 'status',
       js: [ '/js/status.js' ],
-      solList: solList,
+      solList: solList
     });
   });
 });

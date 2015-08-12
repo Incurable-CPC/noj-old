@@ -10,63 +10,58 @@ var path = require('path');
 var fs = require('fs');
 
 function Solution(sol) {
-  this.sid = (sol.sid)? sol.sid: 100000;
+  this.sid = (sol.sid)? Number(sol.sid): 100000;
   this.code = (sol.code)? sol.code: '';
   this.lang = (sol.lang)? sol.lang: 'c';
   this.user = (sol.user)? sol.user: '';
   this.pid = (sol.pid)? Number(sol.pid): 1000;
+  this.cid = (sol.cid)? Number(sol.cid): 0;
   this.date = (sol.date)? new Date(sol.date): new Date();
   this.codeLength = (sol.codeLength)? sol.codeLength: this.code.length;
-  this.result = (sol.result)? Number(sol.result): 0;
+  this.result = (sol.result)? Number(sol.result): STATUS.WT0;
   this.timeUsage = (sol.timeUsage)? sol.timeUsage: '---';
   this.memoryUsage = (sol.memoryUsage)? sol.memoryUsage: '---';
 };
 module.exports = Solution;
 
+var solutionCnt;
+Solution.init = function init(callback) {
+  mongodb.collection('solutions', function(err, collection) {
+    test.equal(null, err);
+    collection.findOne({}, { sort: [[ 'sid', -1 ]], returnKey: true }, function (err, sol) {
+      test.equal(null, err);
+      solutionCnt = (sol)? sol.sid-99999: 0;
+      if (callback) callback(err);
+    });
+  });
+};
+
 Solution.prototype.save = function save(callback) {
-  var solution = new Solution(this);
+  var sol = new Solution(this);
   mongodb.collection('solutions', function(err, collection) {
     test.equal(null, err);
     collection.ensureIndex({ sid: -1 }, { unique: true }, function(err, result) {
       test.equal(null, err);
-      collection.findOne({}, { sort: [[ 'sid', -1 ]], returnKey: true }, function (err, sol) {
-        solution.sid = (sol)? sol.sid+1: 100000;
-        collection.insertOne(solution, { safe: true }, function(err, result) {
-          test.equal(null, err);
-          solution.judge();
-          callback(err, result);
-        });
+      sol.sid = solutionCnt+100000;
+      solutionCnt++;
+      collection.insertOne(sol, { safe: true }, function(err, result) {
+        test.equal(null, err);
+        sol.judge();
+        callback(err, sol);
       });
     });
   });
 };
 
-Solution.prototype.update = Model.update(Solution, 'solutions', 'sid');
-Solution.get = Model.get(Solution, 'solutions', 'sid');
-Solution.count = Model.count('solutions');
+var model = new Model(Solution, 'solutions', 'sid');
+Solution.prototype.update = model.update();
+Solution.get = model.get();
+Solution.count = model.count();
+Solution.getList = model.getList({ sid: -1 }, { code: false });
 
-Solution.getList = function getList(option, callback) {
-  if (!option.cond) option.cond = {};
-  if (!option.sortKey) option.sortKey = { sid: -1 };
-  mongodb.collection('solutions', function(err, collection) {
-    test.equal(null, err);
-    collection.find(option.cond, { code: false }).sort(option.sortKey).
-      skip(option.num*(option.page-1)).limit(option.num).toArray(function(err, docs) {
-      test.equal(null, err);
-      if (docs) {
-        callback(err, docs.map(function(doc) {
-          return new Solution(doc);
-        }));
-      } else {
-        callback(err, null);
-      }
-    });
-  });
-};
-
-Solution.prototype.judge = function judge() {
+Solution.prototype.judge = function judge(callback) {
   var sol = new Solution(this);
-  var dir = path.join('sandbox', String(sol.sid));
+  var dir = path.join('sandbox', 'submissions', String(sol.sid));
   User.get(sol.user, function(err, user) {
     test.equal(null, err);
     Problem.get(sol.pid, function(err, pro) {
@@ -87,7 +82,7 @@ Solution.prototype.judge = function judge() {
                   sol.result = Number(result[0]);
                   sol.timeUsage = result[1]+' ms';
                   sol.memoryUsage = result[2]+' KB';
-                  sol.update();
+                  sol.update(callback);
                   if (sol.result == STATUS.AC) {
                     pro.accepted++;
                     user.solved[sol.pid] = true;
@@ -98,7 +93,7 @@ Solution.prototype.judge = function judge() {
               });
             } else {
               sol.result = STATUS.CE;
-              sol.update();
+              sol.update(callback);
               pro.update();
               user.update();
             }
