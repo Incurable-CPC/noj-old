@@ -1,0 +1,8 @@
+<tr>
+	<td><%=cont.cid %></td>
+	<td><a href="/contests/<%=cont.cid%>"><%=cont.title %></a></td>
+	<td><%=cont.start.format('yyyy-MM-dd hh:mm:ss') %></td>
+	<td class="contest-type-<%=cont.type %>"><%=contestType[cont.type] %></td>
+	<td class="contest-status-<%=cont.status %>"><%=contestStatus[cont.status] %></td>
+</tr>
+

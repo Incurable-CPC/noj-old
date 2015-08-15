@@ -1,31 +1,16 @@
-var mongodb = require('./db');
-var Model = require('./model');
-var test = require('assert');
+/**
+ * Created by Cai on 8/12/2015.
+ */
+var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
 
-function User(user) {
-  this.name = (user.name)? user.name: '';
-  this.password = (user.password)? user.password: '';
-  this.isAdmin = Boolean(user.isAdmin);
-  this.solved = (user.solved)? user.solved: {};
-  this.tried = (user.tried)? user.tried: {};
-};
-module.exports = User;
+var userSchema = new Schema({
+  name: { type: String, index: { unique: true}},
+  password: String,
+  admin: Boolean,
+  solved: [Number],
+  tried: [Number]
+});
+userSchema.index({ name: 1 });
 
-User.prototype.save = function save(callback) {
-  var user = new User(this);
-  mongodb.collection('users', function(err, collection) {
-    test.equal(null, err);
-    collection.ensureIndex({ name: 1 }, { unique: true }, function(err, result) {
-      test.equal(null, err);
-      collection.insertOne(user, { safe: true }, function(err, result) {
-        test.equal(null, err);
-        callback(err, user);
-      });
-    });
-  });
-};
-
-var model = new Model(User, 'users', 'name');
-User.prototype.update = model.update();
-User.get = model.get();
-User.count = model.count();
+var User = mongoose.model('User', userSchema);

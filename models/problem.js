@@ -1,152 +1,120 @@
+/**
+ * Created by Cai on 8/12/2015.
+ */
+var mongoose = require('mongoose');
 var STATUS = require('../common').STATUS;
-var Model = require('./model');
-var mongodb = require('./db');
+var Schema = mongoose.Schema;
 var mkdirp = require('mkdirp');
-var test = require('assert');
 var path = require('path');
 var fs = require('fs');
+var test = require('assert');
 
-function Problem(pro) {
-  this.pid = (pro.pid)? Number(pro.pid): 1000;
-  this.title = (pro.title)? pro.title: '';
-  this.timeLimit = (pro.timeLimit)? Number(pro.timeLimit): 1000;
-  this.memoryLimit = (pro.memoryLimit)? Number(pro.memoryLimit): 256;
-  this.description = (pro.description)? pro.description: '';
-  this.input = (pro.input)? pro.input: '';
-  this.output = (pro.output)? pro.output: '';
-  this.sampleInput = (pro.sampleInput)? pro.sampleInput: '';
-  this.sampleOutput = (pro.sampleOutput)? pro.sampleOutput: '';
-  this.source = (pro.source)? pro.source: '';
-  this.hint = (pro.hint)? pro.hint: '';
-  this.testdataNum = (pro.testdataNum)? Number(pro.testdataNum): 0;
-  this.submit = (pro.submit)? Number(pro.submit): 0;
-  this.accepted = (pro.accepted)? Number(pro.accepted): 0;
-  this.isHidden = Boolean(pro.isHidden);
-};
-module.exports = Problem;
+var problemSchema = new Schema({
+  pid: { type: Number, index: { unique: true }},
+  title: String,
+  timeLimit: { type: Number, default: 1000 },
+  memoryLimit: { type: Number, default: 256},
+  description: String,
+  input: String,
+  output: String,
+  sampleInput: String,
+  sampleOutput: String,
+  source: String,
+  hint: String,
+  testdataNum: Number,
+  submit: Number,
+  accepted: Number,
+  hidden: Boolean,
+  specalJudge: Boolean
+});
 
-var problemCnt;
-Problem.init = function init(callback) {
-  mongodb.collection('problems', function(err, collection) {
-    test.equal(null, err);
-    collection.findOne({}, { sort: [[ 'pid', -1 ]], returnKey: true }, function (err, pro) {
-      problemCnt = (pro)? pro.pid-999: 0;
-      if (callback) callback(err);
-    });
-  });
-};
+problemSchema.pre('save', function(next) {
+  var pro = this;
+  if (pro.pid) return;
+  var Counter = mongoose.model('Counter');
+  Counter.findByIdAndUpdate('Problem', { $inc: { cnt: 1 }}, function (err, counter) {
+    if (err) next(err);
+    pro.pid = counter.cnt+1000;
+    next();
+  })
+});
 
-Problem.prototype.save = function save(callback) {
-  var pro = new Problem(this);
-  mongodb.collection('problems', function(err, collection) {
-    test.equal(null, err);
-    collection.ensureIndex({ pid: 1 }, { unique: true }, function(err, result) {
-      test.equal(null, err);
-      pro.pid = problemCnt+1000;
-      problemCnt++;
-      collection.insertOne(pro, { safe: true }, function(err, result) {
-        test.equal(null, err);
-        callback(err, pro);
-      });
-    });
-  });
-};
-
-var model = new Model(Problem, 'problems', 'pid');
-Problem.prototype.update = model.update();
-Problem.get = model.get();
-Problem.count = model.count();
-
-Problem.getList = function getList(page, callback) {
-  mongodb.collection('problems', function(err, collection) {
-    test.equal(null, err);
-    collection.find({ pid: {
-      $gte: 950+page*50,
-      $lt: 1000+page*50
-    } }, { pid: 1, title: 1, submit: 1, accepted: 1, isHidden: 1}).
-      toArray(function(err, docs) {
-      test.equal(null, err);
-      if (docs) {
-        callback(err, docs.map(function(doc) {
-          return new Problem(doc);
-        }).filter(function(pro) {
-          return !pro.isHidden;
-        }));
-      } else {
-        callback(err, null);
-      }
-    });
-  });
-};
-
-Problem.prototype.addTestdata = function addTestdata(testdata, callback) {
-  var pro = new Problem(this);
+problemSchema.methods.addTestData = function addTestData(testdata, callback) {
   var tmp = {};
-  var datafiles = [];
-  if (!testdata) { callback(); return; }
+  var files = [];
+  if (!testdata) {
+    if (callback) callback();
+    return;
+  }
   testdata.forEach(function(file) {
     var name = file.originalname;
     name = name.slice(0, name.lastIndexOf('.'));
     if (!tmp[name]) tmp[name] = {};
     tmp[name][file.extension] = file.name;
-    if ((tmp[name].in)&&(tmp[name].out))
-      datafiles.push(tmp[name]);
+    if ((tmp[name].in) && (tmp[name].out)) {
+      files.push(tmp[name]);
+    }
   });
-  pro.testdataNum += datafiles.length;
-  pro.update();
-  if (!datafiles) { callback(); return; }
-  var dir = path.join('sandbox', 'testdata', String(pro.pid));
+  var dir = path.join('sandbox', 'testdata', String(this.pid));
+  var testdataNum = this.testdataNum;
+  this.testdataNum += files.length;
+  this.save();
   mkdirp(dir, function(err) {
-    test.equal(null, err);
+    if (err) return callback(err);
     var cnt = 0;
-    datafiles.forEach(function(datafile, i) {
-      var id = i+pro.testdataNum
-      var file = path.join(dir, 'testdata'+id);
-      Object.keys(datafile).forEach(function(type) {
-        fs.readFile(path.join('tmp', datafile[type]), function(err, data) {
-          test.equal(null, err);
-          fs.writeFile(file+'.'+type, data, function(err) {
-            test.equal(null, err);
+    files.forEach(function(file, i) {
+      var id = i+testdataNum;
+      var filename = path.join(dir, 'testdata'+id);
+      Object.keys(file).forEach(function (type) {
+        fs.readFile(path.join('tmp', file[type], function (err, data) {
+          if (err) callback(err);
+          fs.writeFile(filename+'.'+type, data, function(err) {
+            if (err) callback(err);
             cnt++;
-            if (cnt == 2*datafiles.length) callback(err);
-          });
+            if (cnt == 2*files.length) callback(err);
+          })
+        }))
+      })
+    })
+  });
+};
+problemSchema.methods.getStatistics = function getStatistics(page, callback) {
+  var pro = this;
+  var Solution = mongoose.model('Solution');
+  var User = mongoose.model('User');
+  Solution.find({ pid: pro.pid, result: STATUS.AC }, null, {
+    limit: 20,
+    skip: 20*(page-1),
+    sort: { codeLength: 1 }}, function(err, solList) {
+      if (err) return callback(err);
+      pro.solList = solList;
+      pro.result = [];
+      var cnt = 0;
+      var ret = function(err, pro) {
+        cnt++;
+        if (cnt == 2+Object.keys(STATUS).length) {
+          console.log(pro.result);
+          callback(err, pro);
+        }
+      };
+      User.count({ solved: pro.pid }, function(err, res) {
+        if (err) return callback(err);
+        pro.userSolved = res;
+        ret(err, pro);
+      });
+      User.count({ tried: pro.pid }, function(err, res) {
+        if (err) return callback(err);
+        pro.userTried = res;
+        ret(err, pro);
+      });
+      Object.keys(STATUS).forEach(function(key, index) {
+        Solution.count({ pid: pro.pid, result: index },function(err, res) {
+          if (err) return callback(err);
+          pro.result[index] = res;
+          ret(err, pro)
         });
       });
-    });
   });
 };
 
-Problem.prototype.getStatistics = function getStatistics(page, callback) {
-  var pro = new Problem(this);
-  var Solution = require('./solution');
-  var User = require('./user');
-  Solution.getList({
-    num: 20, page: page,
-    cond: { result: STATUS.AC, pid: pro.pid },
-    sortKey: { codeLength : 1 }
-  }, function(err, solList) {
-    test.equal(null, err);
-    pro.solList = solList;
-    pro.result = [];
-    var cnt = 0;
-    var query = {};
-    query['tried.'+pro.pid] = true;
-    User.count(query, function(err, res) {
-      pro.userTried = res;
-      query = {};
-      query['solved.'+pro.pid] = true;
-      User.count(query, function(err, res) {
-        pro.userSolved = res;
-        Object.keys(STATUS).forEach(function(key, index) {
-          Solution.count({ pid: pro.pid, result: index }, function(err, res) {
-            cnt++;
-            pro.result[index] = res;
-            if (cnt == Object.keys(STATUS).length) {
-              callback(err, pro);
-            }
-          });
-        });
-      });
-    });
-  });
-}
+var Problem = mongoose.model('Problem', problemSchema);

@@ -38,7 +38,7 @@ exports.checkLogin = function checkLogin(req, res, next) {
   next();
 }
 exports.checkAdmin = function checkAdmin(req, res, next) {
-  if ((!req.session['user'])||(!req.session['user'].isAdmin)) {
+  if ((!req.session['user'])||(!req.session['user'].admin)) {
     req.flash('error', 'Permission denied');
     return res.redirect('/');
   }

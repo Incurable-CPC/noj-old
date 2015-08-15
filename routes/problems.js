@@ -1,6 +1,8 @@
-var Solution = require('../models/solution');
-var Problem = require('../models/problem');
-var User = require('../models/user');
+var mongoose = require('mongoose');
+require('../models/models');
+//var Solution = require('../models/solution');
+var Problem = mongoose.model('Problem');
+var User = mongoose.model('User');
 var express = require('express');
 var marked = require('marked');
 var router = express.Router();
@@ -17,11 +19,11 @@ router.get('/', function(req, res, next) {
 router.get('/list/:page', function(req, res, next) {
   var page = Number(req.params['page']);
   var username = (req.session['user'])? req.session['user'].name: '';
-  Problem.getList(page, function(err, list) {
-    User.get(username, function(err, user) {
+  Problem.find({ pid : { $gte: 950+page*50, $lt: 1000+page*50 }}, function(err, list) {
+    User.findOne({ name: username }, function(err, user) {
       list.forEach(function(pro) {
-        pro.solved = ((!!user)&&(!!user.solved[pro.pid]));
-        pro.tried = ((!!user)&&(!!user.tried[pro.pid]));
+        pro.solved = ((!!user)&&(pro.pid in user.solved));
+        pro.tried = ((!!user)&&(pro.pid in user.tried));
       });
       return res.render('problems/list', {
         title: 'problems',
@@ -36,13 +38,7 @@ router.get('/add', common.checkAdmin);
 router.get('/add', function(req, res, next) {
   return res.render('problems/add', {
     title: 'add-problem',
-    js: [
-      '/js/problems/problems.js',
-      '/js/input-file.js'
-    ],
-    css: [
-      '/css/input-file.css'
-    ]
+    js: [ '/js/problems/problems.js' ],
   });
 });
 
@@ -67,8 +63,8 @@ router.post('/add', function(req, res, next) {
 
 router.all('/:pid*', function(req, res, next) {
   var pid = Number(req.params['pid']);
-  Problem.get(pid, function(err, pro) {
-    if ((!pro)||(pro.isHidden)) {
+  Problem.findOne({ pid: pid }, function(err, pro) {
+    if ((!pro)||(pro.hidden)) {
       req.flash('error', 'Problem not exist');
       return res.redirect('/');
     } else {
@@ -79,7 +75,7 @@ router.all('/:pid*', function(req, res, next) {
 
 router.get('/:pid', function(req, res, next) {
   var pid = Number(req.params['pid']);
-  Problem.get(pid, function(err, pro) {
+  Problem.findOne({ pid: pid }, function(err, pro) {
     return res.render('problems/problem', {
       title: pro.title,
       pro: pro,
@@ -90,7 +86,7 @@ router.get('/:pid', function(req, res, next) {
 
 router.get('/:pid/statistics', function(req, res, next) {
   var pid = Number(req.params['pid']);
-  Problem.get(pid, function(err, pro) {
+  Problem.findOne({ pid: pid }, function(err, pro) {
     pro.getStatistics(1, function(err, pro) {
       if (req.session['user']) {
         pro.solList.forEach(function(sol) {
@@ -121,7 +117,7 @@ router.post('/:pid/submit', function(req, res, next) {
   sol.user = req.session.user.name;
   var file = req.files['code-file'];
   var submit = function submit(sol) {
-    sol = new Solution(sol);
+    //sol = new Solution(sol);
     sol.save(function(err) {
       req.flash('success', 'Submit success');
       return res.redirect('/status');

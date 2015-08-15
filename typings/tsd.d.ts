@@ -6,3 +6,4 @@
 /// <reference path="mkdirp/mkdirp.d.ts" />
 /// <reference path="mongodb/mongodb.d.ts" />
 /// <reference path="multer/multer.d.ts" />
+/// <reference path="mongoose/mongoose.d.ts" />

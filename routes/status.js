@@ -1,4 +1,5 @@
-var Solution = require('../models/solution');
+var mongoose = require('mongoose');
+var Solution = mongoose.model('Solution');
 var express = require('express');
 var router = express.Router();
 module.exports = router;
@@ -10,7 +11,7 @@ router.get('/', function(req, res, next) {
 
 router.get('/page/:page', function(req, res, next) {
   var page = Number(req.params['page']);
-  Solution.getList({ num: 50, page: page }, function(err, solList) {
+  Solution.find({}, null, { num: 50, skip: 50*(page-1), sort: { sid: -1 } }, function(err, solList) {
     if (req.session['user']) {
       solList.forEach(function(sol) {
         sol.canView = sol.user == req.session['user'].name;
@@ -27,7 +28,7 @@ router.get('/page/:page', function(req, res, next) {
 router.get('/code/:sid', common.checkLogin);
 router.get('/code/:sid', function(req, res, next) {
   var sid = Number(req.params['sid']);
-  Solution.get(sid, function(err, sol) {
+  Solution.findOne({ sid: sid }, function(err, sol) {
     if (!sol) {
       req.flash('error', 'Submission not exist');
       return res.redirect('/');

@@ -1,5 +1,6 @@
 public/js/lib/*
 node_modules/*
+typings/*
 .idea/*
 *.swp
 test.js

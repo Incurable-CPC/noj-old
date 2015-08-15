@@ -1,7 +1,8 @@
 var CONTEST_STATUS = require('../common').CONTEST_STATUS;
-var Contest = require('../models/contest');
-var Problem = require('../models/problem');
-var Solution = require('../models/solution');
+var mongoose = require('mongoose');
+var Contest = mongoose.model('Contest');
+var Problem = mongoose.model('Problem');
+var Solution = mongoose.model('Solution');
 var express = require('express');
 var marked = require('marked');
 var router = express.Router();
@@ -16,11 +17,12 @@ router.get('/', function(req, res, next) {
 
 router.get('/page/:page', function(req, res, next) {
   var page = Number(req.params['page']);
-  Contest.getList({ num: 20, page: page }, function(err, conList) {
+  Contest.find({}, null, { limit: 20, skip: (page-1)*20 }, function(err, contList) {
+    console.log(contList);
     return res.render('contests/list', {
       title: 'contests',
       js: [ '/js/contests/contests.js' ],
-      conList: conList,
+      contList: contList
     });
   });
 });
@@ -44,16 +46,16 @@ router.post('/add', function(req, res, next) {
   var contest = common.postHandle(req.body);
   contest.manager = req.session['user'].name;
   contest = new Contest(contest);
-  contest.save(function(err, con) {
+  contest.save(function(err, cont) {
     req.flash('success', 'Add contest success');
-    res.redirect('/contests/contest/'+con.cid);
+    res.redirect('/contests/contest/'+cont.cid);
   });
 });
 
 router.all('/:cid', function(req, res, next) {
   var cid = Number(req.params['cid']);
-  Contest.get(cid, function(err, con) {
-    if (!con) {
+  Contest.findOne({ cid: cid }, function(err, cont) {
+    if (!cont) {
       req.flash('error', 'Contest not exist');
       return res.redirect('/');
     } else {
@@ -63,13 +65,13 @@ router.all('/:cid', function(req, res, next) {
 });
 router.all('/:cid/*', function(req, res, next) {
   var cid = Number(req.params['cid']);
-  Contest.get(cid, function(err, con) {
-    if (!con) {
+  Contest.findOne({ cid: cid }, function(err, cont) {
+    if (!cont) {
       req.flash('error', 'Contest not exist');
       return res.redirect('/');
     } else {
       var user = req.session['user'];
-      if (((!user)||(con.manager != user.name))&&(con.status == CONTEST_STATUS.PENDING)) {
+      if (((!user)||(cont.manager != user.name))&&(cont.status == CONTEST_STATUS.PENDING)) {
         req.flash('error', 'Contest not start');
         return res.redirect('/contests/'+cid);
       } else {
@@ -80,13 +82,13 @@ router.all('/:cid/*', function(req, res, next) {
 });
 router.get('/:cid', function(req, res, next) {
   var cid = Number(req.params['cid']);
-  Contest.get(cid, function(err, con) {
-    con.isManager = ((req.session['user'])&&(con.manager == req.session['user'].name));
-    con.getAllProblem(function(err, proList) {
+  Contest.findOne({ cid: cid }, function(err, cont) {
+    cont.isManager = ((req.session['user'])&&(cont.manager == req.session['user'].name));
+    cont.getAllProblem(function(err, proList) {
       return res.render('contests/contest', {
-        title: con.title,
+        title: cont.title,
         layoutView: 'contests/layout',
-        con: con,
+        cont: cont,
         proList: proList,
         js: [ '/js/contests/contests.js' ]
       });
@@ -96,12 +98,12 @@ router.get('/:cid', function(req, res, next) {
 router.get('/:cid/status', function(req, res, next) {
   var cid = Number(req.params['cid']);
   var user = req.session['user'];
-  Contest.get(cid, function(err, con) {
-    con.getSolutionsByUser(user, 1, function(err, solList) {
+  Contest.get(cid, function(err, cont) {
+    cont.getSolutionsByUser(user, 1, function(err, solList) {
       return res.render('contests/status', {
-        title: con.title+'-status',
+        title: cont.title+'-status',
         layoutView: 'contests/layout',
-        con: con,
+        cont: cont,
         solList: solList
       });
     });
@@ -110,8 +112,8 @@ router.get('/:cid/status', function(req, res, next) {
 router.get('/:cid/problem/:id*', function(req, res, next) {
   var cid = Number(req.params['cid']);
   var id = req.params['id'].charCodeAt()-65;
-  Contest.get(cid, function(err, con) {
-    con.getProblem(id, function(err, pro) {
+  Contest.findOne({ cid: cid }, function(err, cont) {
+    cont.getProblem(id, function(err, pro) {
       if (!pro) {
         req.flash('error', 'Problem not exist');
         return res.redirect('/contests/'+cid);
@@ -122,13 +124,13 @@ router.get('/:cid/problem/:id*', function(req, res, next) {
 router.get('/:cid/problem/:id', function(req, res, next) {
   var cid = Number(req.params['cid']);
   var id = req.params['id'].charCodeAt()-65;
-  Contest.get(cid, function(err, con) {
-    con.getProblem(id, function(err, pro) {
+  Contest.findOne({ cid: cid }, function(err, cont) {
+    cont.getProblem(id, function(err, pro) {
       return res.render('contests/problem', {
         title: pro.title,
         layoutView: 'contests/layout',
-        con: con,
-        pro: pro,
+        cont: cont,
+        pro: pro
       });
     });
   });
@@ -137,11 +139,11 @@ router.get('/:cid/problem/:id', function(req, res, next) {
 router.get('/:cid/problem/:id/submit', common.checkLogin);
 router.get('/:cid/problem/:id/submit', function(req, res, next) {
   var cid = Number(req.params['cid']);
-  Contest.get(cid, function(err, con) {
+  Contest.findOne({ cid: cid }, function(err, cont) {
     return res.render('problems/submit', {
-      title: 'submit-'+con.title,
+      title: 'submit-'+cont.title,
       layoutView: 'contests/layout',
-      con: con,
+      cont: cont,
       pid: req.params['id']
     });
   });
@@ -149,9 +151,9 @@ router.get('/:cid/problem/:id/submit', function(req, res, next) {
 router.post('/:cid/problem/:id/submit', common.checkLogin);
 router.post('/:cid/problem/:id/submit', function(req, res, next) {
   var cid = Number(req.params['cid']);
-  Contest.get(cid, function(err, con) {
-    console.log(con.status);
-    if (con.status != CONTEST_STATUS.RUNNING) {
+  Contest.findOne({ cid: cid }, function(err, cont) {
+    contsole.log(cont.status);
+    if (cont.status != CONTEST_STATUS.RUNNING) {
       req.flash('error', 'Out of contest time');
       return res.redirect('/contests/'+cid);
     }
@@ -164,7 +166,7 @@ router.post('/:cid/problem/:id/submit', function(req, res, next) {
       sol.save(function(err) {
         req.flash('success', 'Submit success');
         return res.redirect('/contests/'+cid+'/status');
-        con.submit(sol.sid);
+        cont.submit(sol.sid);
       });
     };
     if (file) {
@@ -182,12 +184,12 @@ router.post('/:cid/problem/:id/submit', function(req, res, next) {
 router.get('/:cid/add/problem', common.checkAdmin);
 router.get('/:cid/add/problem', function(req, res, next) {
   var cid = Number(req.params['cid']);
-  Contest.get(cid, function(err, con) {
-    if (con.manager == req.session['user'].name) {
+  Contest.findOne({ cid: cid }, function(err, cont) {
+    if (cont.manager == req.session['user'].name) {
       return res.render('problems/add', {
-        title: con.title+'-add-problem',
+        title: cont.title+'-add-problem',
         layoutView: 'contests/layout',
-        con: con,
+        cont: cont,
         js: [
           '/js/contests/contests.js',
           '/js/input-file.js'
@@ -214,8 +216,8 @@ router.post('/:cid/add/problem', function(req, res, next) {
         fs.unlink(path.join('tmp', file.name));
       });
     });
-    Contest.get(cid, function(err, con) {
-      con.addProblem(pro.pid);
+    Contest.findOne({ cid: cid }, function(err, cont) {
+      cont.addProblem(pro.pid);
       req.flash('success', 'Add problem success');
       return res.redirect('/contests/contest/'+cid);
     });

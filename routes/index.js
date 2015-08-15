@@ -1,4 +1,6 @@
-var User = require('../models/user');
+var mongoose = require('mongoose');
+require('../models/models');
+var User = mongoose.model('User');
 var express = require('express');
 var router = express.Router();
 var util = require('util');
@@ -20,7 +22,7 @@ router.get('/login', function(req, res, next) {
 
 router.post('/login', function(req, res, next) {
   var password = common.md5(req.body['password']);
-  User.get(req.body['username'], function(err, user) {
+  User.findOne({ name: req.body['username'] }, function(err, user) {
     if (!user) {
       req.flash('error', 'User not exist');
       return res.redirect('/login');
@@ -44,10 +46,7 @@ router.get('/logout', function(req, res, next) {
 
 router.get('/reg', common.checkNotLogin);
 router.get('/reg', function(req, res, next) {
-  return res.render('reg', {
-    title: 'register',
-    js: [ '/js/reg.js' ]
-  });
+  return res.render('reg', { title: 'register' });
 });
 
 router.post('/reg', function(req, res, next) {
@@ -56,10 +55,10 @@ router.post('/reg', function(req, res, next) {
     return res.redirect('/reg');
   }
   var newUser = new User({
-        name: req.body['username'],
-        password: common.md5(req.body['password'])
-      });
-  User.get(newUser.name, function(err, user) {
+    name: req.body['username'],
+    password: common.md5(req.body['password'])
+  });
+  User.findOne({ name: newUser.name }, function(err, user) {
     if (user) {
       req.flash('error', 'Username existed');
       return res.redirect('/reg');
@@ -74,7 +73,7 @@ router.post('/reg', function(req, res, next) {
 });
 
 router.get('/reg/exist/:username', function(req, res, next) {
-  User.get(req.params['username'], function(err, user) {
+  User.findOne({ name: req.params['username'] }, function(err, user) {
     return res.send({ exist: !!user });
   });
 });

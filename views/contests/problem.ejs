@@ -1,16 +1,16 @@
 <% layout(layoutView) %>
-<script type="text/x-mathjax-config">
+<script type="text/x-mathjax-contfig">
 MathJax.Hub.Config({
   tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
 });
 </script>
-<script type="text/javascript" src="/js/lib/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/javascript" src="/js/lib/MathJax/MathJax.js?contfig=TeX-AMS-MML_HTMLorMML"></script>
 <div class="contain">
 	<div class="row">
 		<div class="col-sm-1"></div>
 		<div class="col-sm-10">
 			<div class="text-center">
-				<div><h1><%=pro.id %> <%=pro.title %></h1></div>
+				<div><h1><%=pro.subId %> <%=pro.title %></h1></div>
 				<div>
 					Time Limit: <span class="label label-warning"><%=pro.timeLimit %>ms</span>&nbsp;&nbsp;
 					Memory Limit: <span class="label label-warning"><%=pro.memoryLimit %>MB</span>
@@ -44,9 +44,9 @@ MathJax.Hub.Config({
 			</div>
 			<div class="text-center">
 				<div class="btn-group">
-					<a id="submit" class="btn btn-success" href="/contests/<%=con.cid%>/problem/<%=pro.id %>/submit">Submit</a>
-					<a id="Clarification" class="btn btn-default" href="/contests/<%=con.cid%>/clarification/problem/<%=pro.id %>/">Clarification</a>
-					<a id="back" class="btn btn-default" href="/contests/<%=con.cid%>">Back</a>
+					<a id="submit" class="btn btn-success" href="/contests/<%=cont.cid%>/problem/<%=pro.subId %>/submit">Submit</a>
+					<a id="Clarification" class="btn btn-default" href="/contests/<%=cont.cid%>/clarification/problem/<%=pro.subId%>/">Clarification</a>
+					<a id="back" class="btn btn-default" href="/contests/<%=cont.cid%>">Back</a>
 				</div>
 			</div>
 		</div>
