@@ -190,13 +190,7 @@ router.get('/:cid/add/problem', function(req, res, next) {
         title: cont.title+'-add-problem',
         layoutView: 'contests/layout',
         cont: cont,
-        js: [
-          '/js/contests/contests.js',
-          '/js/input-file.js'
-        ],
-        css: [
-          '/css/input-file.css'
-        ]
+        js: [ '/js/contests/contests.js' ],
       });
     } else common.refuse(req, res);
   });
