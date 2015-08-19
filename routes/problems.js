@@ -1,6 +1,6 @@
 var mongoose = require('mongoose');
 require('../models/models');
-//var Solution = require('../models/solution');
+var Solution = mongoose.model('Solution');
 var Problem = mongoose.model('Problem');
 var User = mongoose.model('User');
 var express = require('express');
@@ -19,16 +19,22 @@ router.get('/', function(req, res, next) {
 router.get('/list/:page', function(req, res, next) {
   var page = Number(req.params['page']);
   var username = (req.session['user'])? req.session['user'].name: '';
-  Problem.find({ pid : { $gte: 950+page*50, $lt: 1000+page*50 }}, function(err, list) {
+  Problem.find({ pid : { $gte: 950+page*50, $lt: 1000+page*50 }}, function(err, proList) {
     User.findOne({ name: username }, function(err, user) {
-      list.forEach(function(pro) {
+      proList.forEach(function(pro) {
         pro.solved = ((!!user)&&(pro.pid in user.solved));
         pro.tried = ((!!user)&&(pro.pid in user.tried));
       });
-      return res.render('problems/list', {
-        title: 'problems',
-        js: [ '/js/problems/problems.js' ],
-        proList: list
+      mongoose.model('Counter').findById('Problem', function(err, counter) {
+        var cnt = counter? counter.cnt: 0;
+        if (err) return next(err);
+        return res.render('problems/list', {
+          title: 'problems',
+          js: ['/js/problems/problems.js'],
+          page: page,
+          maxPage: 1+Math.floor(cnt/50),
+          proList: proList
+        });
       });
     });
   });
@@ -45,10 +51,11 @@ router.get('/add', function(req, res, next) {
 router.post('/add', common.checkAdmin);
 router.post('/add', function(req, res, next) {
   var pro = new Problem(common.postHandle(req.body));
-  pro.description = marked(pro.description);
-  pro.input = marked(pro.input);
-  pro.output = marked(pro.output);
+  //pro.description = marked(pro.description);
+//  pro.input = marked(pro.input);
+//  pro.output = marked(pro.output);
   pro.save(function(err, pro) {
+    if (err) return next(err);
     pro.addTestdata(req.files.testdata, function(err) {
       if (!req.files.testdata) return;
       req.files.testdata.forEach(function(file) {
@@ -56,7 +63,7 @@ router.post('/add', function(req, res, next) {
       });
     });
     req.flash('success', 'Add problem success');
-    return res.redirect('/problems/problem/'+pro.pid);
+    return res.redirect('/problems/'+pro.pid);
   });
 });
 
@@ -117,8 +124,9 @@ router.post('/:pid/submit', function(req, res, next) {
   sol.user = req.session.user.name;
   var file = req.files['code-file'];
   var submit = function submit(sol) {
-    //sol = new Solution(sol);
+    sol = new Solution(sol);
     sol.save(function(err) {
+      if (err) return next(err);
       req.flash('success', 'Submit success');
       return res.redirect('/status');
     });

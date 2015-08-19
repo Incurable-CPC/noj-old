@@ -11,19 +11,19 @@ var test = require('assert');
 
 var problemSchema = new Schema({
   pid: { type: Number, index: { unique: true }},
-  title: String,
+  title: { type: String, default: '' },
   timeLimit: { type: Number, default: 1000 },
   memoryLimit: { type: Number, default: 256},
-  description: String,
-  input: String,
-  output: String,
-  sampleInput: String,
-  sampleOutput: String,
-  source: String,
-  hint: String,
-  testdataNum: Number,
-  submit: Number,
-  accepted: Number,
+  description: { type: String, default: '' },
+  input: { type: String, default: '' },
+  output: { type: String, default: '' },
+  sampleInput: { type: String, default: '' },
+  sampleOutput: { type: String, default: '' },
+  source: { type: String, default: '' },
+  hint: { type: String, default: '' },
+  testdataNum: { type: Number, default: 0 },
+  submit:  { type: Number, default: 0 },
+  accepted:  { type: Number, default: 0 },
   hidden: Boolean,
   specalJudge: Boolean
 });
@@ -32,20 +32,20 @@ problemSchema.pre('save', function(next) {
   var pro = this;
   if (pro.pid) return;
   var Counter = mongoose.model('Counter');
-  Counter.findByIdAndUpdate('Problem', { $inc: { cnt: 1 }}, function (err, counter) {
+  Counter.new('Problem', function (err, ret) {
     if (err) next(err);
-    pro.pid = counter.cnt+1000;
+    pro.pid = ret+1000;
     next();
-  })
+  });
 });
 
-problemSchema.methods.addTestData = function addTestData(testdata, callback) {
-  var tmp = {};
-  var files = [];
+problemSchema.methods.addTestdata = function addTestdata(testdata, callback) {
   if (!testdata) {
     if (callback) callback();
     return;
   }
+  var tmp = {};
+  var files = [];
   testdata.forEach(function(file) {
     var name = file.originalname;
     name = name.slice(0, name.lastIndexOf('.'));
@@ -57,8 +57,8 @@ problemSchema.methods.addTestData = function addTestData(testdata, callback) {
   });
   var dir = path.join('sandbox', 'testdata', String(this.pid));
   var testdataNum = this.testdataNum;
-  this.testdataNum += files.length;
-  this.save();
+  Problem.findOneAndUpdate({ pid: this.pid },
+    {$inc: { testdataNum: files.length}});
   mkdirp(dir, function(err) {
     if (err) return callback(err);
     var cnt = 0;
@@ -93,7 +93,6 @@ problemSchema.methods.getStatistics = function getStatistics(page, callback) {
       var ret = function(err, pro) {
         cnt++;
         if (cnt == 2+Object.keys(STATUS).length) {
-          console.log(pro.result);
           callback(err, pro);
         }
       };

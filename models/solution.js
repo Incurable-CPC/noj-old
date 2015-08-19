@@ -9,7 +9,7 @@ var solutionSchema = new Schema({
 	lang: Number,
 	user: { type: String, index: true },
 	pid: { type: Number, index: true },
-	cid: { type: Number, index: true },
+	cid: { type: Number, index: { sparse: true }},
 	date: { type: Date, default: Date.now },
 	codeLength: Number,
 	result: Number,
@@ -21,11 +21,15 @@ solutionSchema.pre('save', function(next) {
   sol.codeLength = sol.code.length;
   if (sol.sid) return;
   var Counter = mongoose.model('Counter');
-  Counter.findByIdAndUpdate('Counter', { $inc: { cnt: 1 }}, function (err, counter) {
+  Counter.new('Solution', function(err, ret) {
     if (err) next(err);
-    sol.sid = counter.cnt+100000;
+    sol.sid = ret+100000;
     next();
   })
 });
 
+solutionSchema.virtual('proUrl').get(function() {
+  if (this.cid) return '/contests/'+this.cid+'/problem/'+this.pid;
+  else return '/problems/'+this.pid;
+});
 mongoose.model('Solution', solutionSchema);

@@ -16,7 +16,8 @@ var contestSchema = new Schema({
   end: { type: Date, default: Date.now },
   type: { type: Number, default: CONTEST_TYPE.PUBLIC },
   manager: String,
-  problems: [ Number ]
+  problems: [ Number ],
+  submissions: { type: Number, default: 0 }
 });
 
 var teamSchema = new Schema({
@@ -28,8 +29,7 @@ var teamSchema = new Schema({
     failed: Number
   }],
   solved: Number,
-  penalty: Number,
-  lastSubmit: Date
+  penalty: Number
 });
 contestSchema.virtual('status').get(function() {
   var now = new Date();
@@ -42,9 +42,9 @@ contestSchema.pre('save', function(next) {
   var cont = this;
   if (cont.cid) return;
   var Counter = mongoose.model('Counter');
-  Counter.findByIdAndUpdate('Contest', { $inc: { cnt: 1 }}, function (err, counter) {
+  Counter.new('Contest', function(err, ret) {
     if (err) next(err);
-    cont.cid = counter.cnt+1000;
+    cont.cid = ret+1000;
     next();
   })
 });
@@ -55,7 +55,6 @@ contestSchema.methods.getProblemSubId = function getProblemSubId(pid) {
       return id;
     }
   }
-  test.throws(function() { throw new Error("Problem not Exist"); });
 };
 contestSchema.methods.addProblem = function(pid, callback) {
   this.problems.push(pid);
@@ -69,16 +68,31 @@ contestSchema.methods.getProblem = function addProblem(id, callback) {
   var cont = this;
   var Problem = mongoose.model('Problem');
   if ((id >= 0)&&(id < cont.problems.length)) {
-    Problem.findOne({ pid: cont.problems[id].pid }, function(err, pro) {
+    Problem.findOne({ pid: cont.problems[id] }, function(err, pro) {
       if (err) return callback(err);
-      pro.subId = String.fromCharCode(id+65);
-      callback(err, pro);
+      pro.subId = id+1001;
+      var solved = 'problems.'+id+'.solved';
+      var failed = 'problems.'+id+'.failed';
+      Team.aggregate(
+        { $match: { cid: cont.cid }},
+        { $group: {
+          _id: null,
+          solved: { $sum: { $cond: [ solved, 1, 0]}},
+          failed: { $sum: failed }
+        }}, function (err, res) {
+          if (err) return callback(err);
+          if (res.length) {
+            pro.solved = res[0].solved;
+            pro.tried = res[0].failed + pro.solved;
+          } else pro.solved = pro.tried = 0;
+          callback(err, pro);
+        });
     });
   } else {
     callback();
   }
 };
-contestSchema.methods.getAllProblem = function getAllProblem(callback) {
+contestSchema.methods.getAllProblems = function getAllProblems(callback) {
   var cont = this;
   if (cont.problems.length) {
     var proList = [];
@@ -89,7 +103,6 @@ contestSchema.methods.getAllProblem = function getAllProblem(callback) {
         proList[i] = pro;
         cnt++;
         if (cnt == cont.problems.length) {
-          console.log(proList);
           callback(err, proList);
         }
       });
@@ -109,12 +122,13 @@ contestSchema.methods.submit = function(sid) {
       } else {
         Team.findOne({ cid: cont.cid, name: sol.user }, function(err, team) {
           if (!team) {
-            team = new ContestTeam({
+            team = new Team({
               cid: cont.cid,
-              name: sol.user
+              name: sol.user,
+              proStatus: []
             });
-            team.save();
           }
+          team.check(cont.problems.length);
           var proId = cont.getProblemSubId(sol.pid);
           var proStatus = team.proStatus[proId];
           if (proStatus.solved) return;
@@ -133,6 +147,37 @@ contestSchema.methods.submit = function(sid) {
     });
   }, 3000);
 };
+contestSchema.methods.getSolutions = function getSolutions(cond, page, callback) {
+  var Solution = mongoose.model('Solution');
+  var cont = this;
+  cond['cid'] = cont.cid;
+  Solution.find(cond, null, { skip: (page-1)*20, limit: 20, sort: { sid: -1 }},
+    function(err, solList) {
+      if (err) return callback(err);
+      callback(err, solList);
+    });
+};
+contestSchema.methods.getStanding = function getStanding(page, callback) {
+  var cont = this;
+  Team.find({ cid: cont.cid }, null,
+    { sort: {solved: 1, penalty: -1 }, limit: 50, skip: (page-1)*50}, function (err, teamList) {
+      if (err) return callback(err);
+      teamList.forEach(function (team, i) {
+        team.check(cont.problems.length);
+        team.rank = i+(page-1)*50+1;
+      });
+      callback(err, teamList);
+    });
+};
 
+teamSchema.methods.check = function check(proNum) {
+  while (this.proStatus.length < proNum) {
+    this.proStatus.push({
+      solved: false,
+      failed: 0
+    })
+  }
+  this.save();
+};
 var Contest = mongoose.model('Contest', contestSchema);
-var Team = mongoose.model('ContestTeam', teamSchema);
+var Team = mongoose.model('Team', teamSchema);

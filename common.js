@@ -25,36 +25,44 @@ exports.postHandle = function postHandle(obj) {
   }
   return ret;
 };
+exports.checkSolCanView = function checkSolCanView(solList, req) {
+  var user = req.session['user'];
+  if (!user) return;
+  solList.forEach(function(sol) {
+    sol.canView = sol.user == user.name;
+  });
+};
+
 
 exports.refuse = function(req, res) {
   req.flash('error', 'Permission denied');
   return res.redirect('/');
-}
+};
 exports.checkLogin = function checkLogin(req, res, next) {
   if (!req.session['user']) {
     req.flash('error', 'Not loged');
     return res.redirect('/login');
   }
   next();
-}
+};
 exports.checkAdmin = function checkAdmin(req, res, next) {
   if ((!req.session['user'])||(!req.session['user'].admin)) {
     req.flash('error', 'Permission denied');
     return res.redirect('/');
   }
   next();
-}
+};
 exports.checkNotLogin = function checkNotLogin(req, res, next) {
   if (req.session['user']) {
     req.flash('error', 'Already logged');
     return res.redirect('/');
   }
   next();
-}
+};
 exports.md5 = function md5(str) {
   var md5 = require('crypto').createHash('md5');
   return md5.update(str).digest('base64');
-}
+};
 
 
 Date.prototype.format = function (fmt) {
@@ -71,5 +79,5 @@ Date.prototype.format = function (fmt) {
   for (var k in o)
     if (new RegExp("("+k+")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00"+o[k]).substr(("" + o[k]).length)));
   return fmt;
-}
+};
 

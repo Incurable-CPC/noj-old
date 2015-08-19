@@ -1,0 +1,15 @@
+<div class="text-center">
+    <h2><%=cont.title %></h2>
+    <div>
+        Start Time: <%=cont.start.format('yyyy-MM-dd hh:mm:ss') %>&nbsp;&nbsp;
+        End Time: <%=cont.end.format('yyyy-MM-dd hh:mm:ss') %>
+    </div>
+    <div>
+        Type: <span class="contest-type-<%=cont.type %>"><%=contestType[cont.type] %></span>&nbsp;&nbsp;
+        Status: <span class="contest-status-<%=cont.status %>"><%=contestStatus[cont.status] %></span>
+    </div>
+    <div style="color:orange">
+        Current Time: <%= new Date().format('yyyy-MM-dd hh:mm:ss') %>&nbsp;&nbsp;
+    </div>
+</div>
+<br />

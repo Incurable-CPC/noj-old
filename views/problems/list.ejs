@@ -1,10 +1,30 @@
 <% layout(layoutView) %>
 
+<nav>
+    <ul class="pagination">
+        <li>
+            <a href="/problems/list/<%=Math.max(page-1, 1)%>" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        <% for (var i = 1; i <= maxPage; i++) {%>
+        <% if (i == page) {%>
+        <li <%-(i == page)?'class="active"':''%>><a><%=i%></a></li>
+        <% } else {%>
+        <li><a href="/problems/list/<%=i%>"><%=i%></a></li>
+        <% }} %>
+        <li>
+            <a href="/problems/list/<%=Math.min(page+1, maxPage)%>" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+    </ul>
+</nav>
 <table class="table table-striped table-hover">
-	<tr>
-		<th width="10%">ID</th>
-		<th width="55%">Title</th>
-		<th width="35%">Radio(AC/Submit)</th>
-	</tr>
-	<%-partial('../partial/pro', proList) %>
+    <tr>
+        <th width="10%">ID</th>
+        <th width="55%">Title</th>
+        <th width="35%">Radio(AC/Submit)</th>
+    </tr>
+    <%-partial('../partial/pro', proList) %>
 </table>

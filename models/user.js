@@ -9,8 +9,8 @@ var userSchema = new Schema({
   password: String,
   admin: Boolean,
   solved: [Number],
-  tried: [Number]
+  tried: [Number],
+  lastSubmit: Date
 });
-userSchema.index({ name: 1 });
 
 var User = mongoose.model('User', userSchema);

@@ -11,15 +11,15 @@ router.get('/', function(req, res, next) {
 
 router.get('/page/:page', function(req, res, next) {
   var page = Number(req.params['page']);
-  Solution.find({}, null, { num: 50, skip: 50*(page-1), sort: { sid: -1 } }, function(err, solList) {
-    if (req.session['user']) {
-      solList.forEach(function(sol) {
-        sol.canView = sol.user == req.session['user'].name;
-      });
-    }
+  if (page < 1) page = 1;
+  Solution.find({ cid: null }, null, { num: 25, skip: 25*(page-1), sort: { sid: -1 } }, function(err, solList) {
+    if (err) return next(err);
+    common.checkSolCanView(solList, req);
     return res.render('status', {
       title: 'status',
       js: [ '/js/status.js' ],
+      url: '/status/page/',
+      page: page,
       solList: solList
     });
   });

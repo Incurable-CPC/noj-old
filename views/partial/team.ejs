@@ -1,0 +1,32 @@
+<%
+function format(x) { return ('00'+x).slice(-2); }
+function timeFormat(time) {
+    var h = time/3600;
+    var m = (time/60)%60;
+    var s = time%60;
+    return format(h)+':'+format(m)+':'+format(s);
+}
+%>
+<tr class="<%=team.user %>">
+    <td><%=team.rank %></td>
+    <td><%=team.user %></td>
+    <td><%=team.solved %></td>
+    <td><%=timeFormat(team.penalty) %></td>
+    <% team.proStatus.forEach(function(prostatus) {
+    if (prostatus.solved) { %>
+    <td class="success">
+        <%=timeFormat(prostatus.solvedTime)%>
+        <% if (prostatus.failed > 0) { %>
+        <br />
+        (-<%=prostatus.failed %>)
+        <% } %>
+    </td>
+    <% } else if (prostatus.failed > 0) {%>
+    <td class="danger">
+        (-<%=prostatus.failed %>)
+    </td>
+    <% } else { %>
+    <td></td>
+    <% } %>
+    <% });%>
+</tr>
