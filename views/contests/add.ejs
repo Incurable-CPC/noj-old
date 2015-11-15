@@ -2,7 +2,7 @@
 <form class="form-horizontal" method="post" enctype="multipart/form-data">
 	<fieldset>
 		<legend>Add Contest</legend>
-		<%-partial('../partial/input', { name: 'title', label: 'Title', type: 'text', width: 5, }) %>
+		<%-partial('../partial/input', { name: 'title', label: 'Title', type: 'text', width: 5, required: true }) %>
 		<div class="form-group">
 			<label for="start" class="col-sm-2 control-label">Start Time</label>
 			<div class="col-sm-3">

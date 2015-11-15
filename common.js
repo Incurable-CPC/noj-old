@@ -1,9 +1,11 @@
-exports.status = [ 'Pending', 'Pending Rejudging', 'Compiling', 'Running & Judging',
+exports.status = [
+  'Pending', 'Pending Rejudging', 'Compiling', 'Running & Judging',
   'Accepted', 'Presentation Error',
   'Wrong Answer', 'Time Limit Exceed', 'Memory Limit Exceed', 'Output Limit Exceed',
   'Runtime Error', 'Compile Error',
   'Compile OK', 'Test Running Done' ];
-exports.STATUS = { WT0: 0, WT1 : 1, CI : 2, RI : 3,
+exports.STATUS = {
+  WT0: 0, WT1 : 1, CI : 2, RI : 3,
   AC : 4, PE : 5,
   WA : 6, TLE : 7, MLE : 8, OLE : 9,
   RE : 10, CE : 11,
@@ -17,14 +19,15 @@ exports.CONTEST_TYPE = { PUBLIC: 0, PRIVATE: 1 };
 
 exports.postHandle = function postHandle(obj) {
   var ret = {};
-  for (var key in obj) {
-    var newKey = key.split('-').reduce(function(sum, elt, i) {
+  Object.keys(obj).forEach(function(key) {
+    var newKey = key.split('-').reduce(function(sum, elt) {
       return sum.concat(elt.substr(0, 1).toUpperCase(), elt.substr(1));
     });
     ret[newKey] = obj[key];
-  }
+  });
   return ret;
 };
+
 exports.checkSolCanView = function checkSolCanView(solList, req) {
   var user = req.session['user'];
   if (!user) return;
@@ -32,7 +35,6 @@ exports.checkSolCanView = function checkSolCanView(solList, req) {
     sol.canView = sol.user == user.name;
   });
 };
-
 
 exports.refuse = function(req, res) {
   req.flash('error', 'Permission denied');
@@ -76,7 +78,7 @@ Date.prototype.format = function (fmt) {
     'S': this.getMilliseconds()
   };
   if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear()+"").substr(4-RegExp.$1.length));
-  for (var k in o)
+  for (var k in o) if (o.hasOwnProperty(k))
     if (new RegExp("("+k+")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00"+o[k]).substr(("" + o[k]).length)));
   return fmt;
 };

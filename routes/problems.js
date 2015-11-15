@@ -19,13 +19,17 @@ router.get('/', function(req, res, next) {
 router.get('/list/:page', function(req, res, next) {
   var page = Number(req.params['page']);
   var username = (req.session['user'])? req.session['user'].name: '';
+  var Counter = mongoose.model('Counter');
   Problem.find({ pid : { $gte: 950+page*50, $lt: 1000+page*50 }}, function(err, proList) {
+    if (err) return next(err);
     User.findOne({ name: username }, function(err, user) {
+      if (err) return next(err);
       proList.forEach(function(pro) {
         pro.solved = ((!!user)&&(pro.pid in user.solved));
         pro.tried = ((!!user)&&(pro.pid in user.tried));
       });
-      mongoose.model('Counter').findById('Problem', function(err, counter) {
+      Counter.findById('Problem', function(err, counter) {
+        if (err) return next(err);
         var cnt = counter? counter.cnt: 0;
         if (err) return next(err);
         return res.render('problems/list', {
@@ -44,33 +48,27 @@ router.get('/add', common.checkAdmin);
 router.get('/add', function(req, res, next) {
   return res.render('problems/add', {
     title: 'add-problem',
-    js: [ '/js/problems/problems.js' ],
+    action: 'add',
+    js: [ '/js/problems/problems.js' ]
   });
 });
-
 router.post('/add', common.checkAdmin);
 router.post('/add', function(req, res, next) {
   var pro = new Problem(common.postHandle(req.body));
-  //pro.description = marked(pro.description);
-//  pro.input = marked(pro.input);
-//  pro.output = marked(pro.output);
   pro.save(function(err, pro) {
     if (err) return next(err);
-    pro.addTestdata(req.files.testdata, function(err) {
-      if (!req.files.testdata) return;
-      req.files.testdata.forEach(function(file) {
-        fs.unlink(path.join('tmp', file.name));
-      });
+    pro.addTestdata(req.files['testdata'], function(err) {
+      if (err) return next(err);
+      req.flash('success', 'Add problem success');
+      return res.redirect('/problems/'+pro.pid);
     });
-    req.flash('success', 'Add problem success');
-    return res.redirect('/problems/'+pro.pid);
   });
 });
-
 
 router.all('/:pid*', function(req, res, next) {
   var pid = Number(req.params['pid']);
   Problem.findOne({ pid: pid }, function(err, pro) {
+    if (err) return next(err);
     if ((!pro)||(pro.hidden)) {
       req.flash('error', 'Problem not exist');
       return res.redirect('/');
@@ -79,10 +77,10 @@ router.all('/:pid*', function(req, res, next) {
     }
   });
 });
-
 router.get('/:pid', function(req, res, next) {
   var pid = Number(req.params['pid']);
   Problem.findOne({ pid: pid }, function(err, pro) {
+    if (err) return next(err);
     return res.render('problems/problem', {
       title: pro.title,
       pro: pro,
@@ -91,10 +89,70 @@ router.get('/:pid', function(req, res, next) {
   });
 });
 
+router.get('/:pid/load', function(req, res, next) {
+  var pid = Number(req.params['pid']);
+  Problem.findOne({ pid: pid }, function(err, pro) {
+    if (err) return next(err);
+    return res.send(pro);
+  });
+});
+router.get('/:pid/data/:id/:type', common.checkAdmin);
+router.get('/:pid/data/:id/:type', function(req, res, next) {
+  var type = req.params['type'];
+  var pid = Number(req.params['pid']);
+  var id = Number(req.params['id']);
+  Problem.findOne({pid: pid}, function(err, pro) {
+    if (err) return next(err);
+    if ((id < pro.testdataNum)&&((type == 'in')||(type =='out'))) {
+      var filePath = path.join('sandbox', 'testdata', String(pid), 'data'+id+'.'+type);
+      fs.readFile(filePath, function(err, data) {
+        if (err) return next(err);
+        return res.send(data);
+      });
+    } else {
+      req.flash('error', 'Testdata not exist');
+      return res.redirect('/');
+    }
+  })
+});
+router.get('/:pid/edit', common.checkAdmin);
+router.get('/:pid/edit', function(req, res, next) {
+  var pid = Number(req.params['pid']);
+  return res.render('problems/add', {
+    title: 'edit-problem',
+    pid: pid,
+    action: 'edit',
+    js: ['/js/problems/problems.js']
+  });
+});
+router.post('/:pid/edit', common.checkAdmin);
+router.post('/:pid/edit', function (req, res, next) {
+  var pid = Number(req.params['pid']);
+  var newPro = common.postHandle(req.body);
+  Problem.findOneAndUpdate({ pid: pid }, newPro, function(err, pro) {
+    if (err) return next(err);
+    req.flash('success', 'Edit problem success');
+    return res.redirect('/problems/'+pro.pid);
+  });
+});
+router.post('/:pid/add-testdata', common.checkAdmin);
+router.post('/:pid/add-testdata', function(req, res, next) {
+  var pid = Number(req.params['pid']);
+  Problem.findOne({ pid: pid }, function(err, pro) {
+    pro.addTestdata(req.files.testdata, function(err) {
+      if (err) return next(err);
+      req.flash('success', 'Add testdata success');
+      res.redirect('/problems/'+pid+'/edit');
+    });
+  });
+});
+
 router.get('/:pid/statistics', function(req, res, next) {
   var pid = Number(req.params['pid']);
   Problem.findOne({ pid: pid }, function(err, pro) {
+    if (err) return next(err);
     pro.getStatistics(1, function(err, pro) {
+      if (err) return next(err);
       if (req.session['user']) {
         pro.solList.forEach(function(sol) {
           sol.canView = sol.user == req.session['user'].name
@@ -117,7 +175,6 @@ router.get('/:pid/submit', function(req, res, next) {
     pid: pid
   });
 });
-
 router.post('/:pid/submit', common.checkLogin);
 router.post('/:pid/submit', function(req, res, next) {
   var sol = req.body;

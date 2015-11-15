@@ -1,12 +1,13 @@
 var isValid = [];
 function checkSubmit() {
+  var submit = $("#submit");
   for (var name in isValid) {
     if (!isValid[name]) {
-      $("#submit").attr("disabled", true);
+      submit.prop("disabled", true);
       return;
     }
   }
-  $("#submit").attr("disabled", false);
+  submit.prop("disabled", false);
 }
 function errorFeedback(name, str) {
   var x = $("#"+name+"-warning");

@@ -9,3 +9,6 @@ sandbox/*
 tmp/*
 tags
 npm-debug.log
+public/*
+!public/css
+!public/js

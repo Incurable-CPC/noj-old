@@ -40,10 +40,8 @@ problemSchema.pre('save', function(next) {
 });
 
 problemSchema.methods.addTestdata = function addTestdata(testdata, callback) {
-  if (!testdata) {
-    if (callback) callback();
-    return;
-  }
+  if (!testdata) return callback();
+  var pro = this;
   var tmp = {};
   var files = [];
   testdata.forEach(function(file) {
@@ -57,26 +55,33 @@ problemSchema.methods.addTestdata = function addTestdata(testdata, callback) {
   });
   var dir = path.join('sandbox', 'testdata', String(this.pid));
   var testdataNum = this.testdataNum;
-  Problem.findOneAndUpdate({ pid: this.pid },
-    {$inc: { testdataNum: files.length}});
-  mkdirp(dir, function(err) {
-    if (err) return callback(err);
-    var cnt = 0;
-    files.forEach(function(file, i) {
-      var id = i+testdataNum;
-      var filename = path.join(dir, 'testdata'+id);
-      Object.keys(file).forEach(function (type) {
-        fs.readFile(path.join('tmp', file[type], function (err, data) {
-          if (err) callback(err);
-          fs.writeFile(filename+'.'+type, data, function(err) {
-            if (err) callback(err);
-            cnt++;
-            if (cnt == 2*files.length) callback(err);
+  Problem.findOneAndUpdate({ pid: pro.pid },
+    {$inc: { testdataNum: files.length}}, function(err) {
+      if (err) return callback(err);
+      mkdirp(dir, function(err) {
+        if (err) return callback(err);
+        var cnt = 0;
+        files.forEach(function(file, i) {
+          var id = i+testdataNum;
+          var filename = path.join(dir, 'data'+id);
+          Object.keys(file).forEach(function (type) {
+            var source = path.join('tmp', file[type]);
+            fs.readFile(source, function (err, data) {
+              if (err) callback(err);
+              fs.writeFile(filename+'.'+type, data, function(err) {
+                if (err) callback(err);
+                cnt++;
+                fs.unlink(source);
+                if (cnt == 2*files.length) {
+                  pro.rejudge();
+                  callback(err, pro);
+                }
+              })
+            });
           })
-        }))
-      })
-    })
-  });
+        })
+      });
+    });
 };
 problemSchema.methods.getStatistics = function getStatistics(page, callback) {
   var pro = this;
@@ -113,6 +118,13 @@ problemSchema.methods.getStatistics = function getStatistics(page, callback) {
           ret(err, pro)
         });
       });
+  });
+};
+problemSchema.methods.rejudge = function rejudge() {
+  var Solution = mongoose.model('Solution');
+  var pro = this;
+  Solution.update({ pid: pro.pid, result: { $ne: STATUS.AC }}, {
+    $set: { result: STATUS.WT1 }
   });
 };
 

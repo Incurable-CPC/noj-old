@@ -2,8 +2,8 @@
 <form class="form-horizontal" method="post">
 	<fieldset>
 		<legend>Login</legend>
-		<%-partial('./partial/input', { name: 'username', label: 'Username', type: 'text', width: 2, }) %>
-		<%-partial('./partial/input', { name: 'password', label: 'Password', type: 'password', width: 2, }) %>
+		<%-partial('./partial/input', { name: 'username', label: 'Username', type: 'text', width: 2, required: true}) %>
+		<%-partial('./partial/input', { name: 'password', label: 'Password', type: 'password', width: 2, required: true}) %>
 		<div class="form-group">
 			<div class="col-sm-offset-2 col-sm-10">
 				<button id="submit" class="btn btn-sm btn-primary">Login</button>

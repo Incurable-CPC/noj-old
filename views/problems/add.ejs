@@ -1,10 +1,11 @@
 <% layout(layoutView) %>
 <link rel="stylesheet" href="/css/input-file.css" />
 <script src="/js/input-file.js"></script>
+<script src="/js/lib/ckeditor/ckeditor.js"></script>
 <form class="form-horizontal" method="post" enctype="multipart/form-data">
 	<fieldset>
-		<legend>Add problem</legend>
-		<%-partial('../partial/input', { name: 'title', label: 'Title', type: 'text', width: 3, }) %>
+		<legend><%=(action=='add')? 'Add': 'Edit'%> problem</legend>
+		<%-partial('../partial/input', { name: 'title', label: 'Title', type: 'text', width: 3, required: true }) %>
 		<div class="form-group">
 			<label for="time-limit" class="col-sm-2 control-label">Time Limit</label>
 			<div class="col-sm-1">
@@ -20,12 +21,16 @@
 			<span class="help-block">MB</span>
 		</div>
 		<%-partial('../partial/textarea', { name: 'description', label: 'Description', width: 7, height: 8 }) %>
+		<script>
+			CKEDITOR.replace('description')
+		</script>
 		<%-partial('../partial/textarea', { name: 'input', label: 'Input', width: 7, height: 4 }) %>
 		<%-partial('../partial/textarea', { name: 'output', label: 'Output', width: 7, height: 4 }) %>
 		<%-partial('../partial/textarea', { name: 'sample-input', label: 'Sample Input', width: 4, height: 6 }) %>
 		<%-partial('../partial/textarea', { name: 'sample-output', label: 'Sample Output', width: 4, height: 6 }) %>
 		<%-partial('../partial/textarea', { name: 'hint', label: 'Hint', width: 5, height: 3 }) %>
 		<%-partial('../partial/textarea', { name: 'source', label: 'Source', width: 5, height: 1 }) %>
+		<% if (action == 'add') {%>
 		<div class="form-group">
 			<label for="testdata" class="col-sm-2 control-label">Testdata</label>
 			<div class="input-file col-sm-3">
@@ -40,10 +45,79 @@
 			</div>
 			<span class="help-block">*.in, *.out, with the same filename</span>
 		</div>
+		<% } else { %>
+		<div class="form-group">
+			<label for="testdata" class="col-sm-2 control-label">Testdata</label>
+			<div class="col-sm-2">
+				<span id="testdata" class="btn btn-default" data-toggle="modal" data-target="#testdata-modal">
+					View
+				</span>
+			</div>
+		</div>
+		<% } %>
 		<div class="form-group">
 			<div class="col-sm-offset-2 col-sm-2">
-				<button id="submit" class="btn btn-sm btn-block btn-success">Add</button>
+				<button id="submit" class="btn btn-sm btn-block btn-success">
+					<%=(action == 'add')? 'Add': 'Save'%>
+				</button>
 			</div>
 		</div>
 	</fieldset>
 </form>
+<% if (action == 'edit') { %>
+<div class="modal fade" id="testdata-modal">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title">Testdata</h4>
+			</div>
+			<div class="modal-body">
+				<div id="testdata-exist"></div>
+			</div>
+			<div class="modal-footer">
+				<form class="form" action="/problems/<%=pid%>/add-testdata" method="post" enctype="multipart/form-data">
+					<div class="row">
+						<div class="col-sm-4 input-file">
+							<div class="input-group">
+								<span class="input-group-btn">
+									<span class="btn btn-default btn-file">
+										Browse<input type="file" multiple id="testdata" name="testdata">
+									</span>
+								</span>
+								<input type="text" class="form-control" readonly />
+							</div>
+						</div>
+						<button type="submit" id="add-testdata" class="col-sm-2 btn btn-default">Add</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	$.get('/problems/<%=pid%>/load', function(pro) {
+		$("#title").val(pro.title);
+		$("#time-limit").val(pro.timeLimit);
+		$("#memory-limit").val(pro.memoryLimit);
+		$("#description").val(pro.description);
+		$("#input").val(pro.input);
+		$("#output").val(pro.output);
+		$("#sample-input").val(pro.sampleInput);
+		$("#sample-output").val(pro.sampleOutput);
+		$("#hint").val(pro.hint);
+		$("#source").val(pro.source);
+		for (var i = 0; i < pro.testdataNum; i++) {
+			var icon = '<span class="glyphicon glyphicon-open-file"></span>';
+			$("#testdata-exist").append('<p>' +
+					'<a href="/problems/<%=pid%>/data/'+i+'/in">' +
+					icon+'testdata'+i+'.in'+
+					'</a>'+'&nbsp;'+
+					'<a href="/problems/<%=pid%>/data/'+i+'/out">' +
+					icon+'testdata'+i+'.out'+
+					'</a>' +
+					'</p>');
+		}
+	}, "json");
+</script>
+<% } %>

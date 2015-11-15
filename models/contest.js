@@ -111,7 +111,7 @@ contestSchema.methods.getAllProblems = function getAllProblems(callback) {
     callback(null, []);
   }
 };
-contestSchema.methods.submit = function(sid) {
+contestSchema.methods.submit = function(sid, callback) {
   var cont = this;
   setTimeout(function() {
     var Solution = mongoose.model('Solution');

@@ -1,9 +1,10 @@
 #ifndef __OJ_INFO_H__
 #define __OJ_INFO_H__
 
-#define GNU_C 0
-#define GNU_CPP 1
-#define JAVA 2
+#define LANG_C 0
+#define LANG_CPP 1
+#define LANG_PAS 2
+#define LANG_JAVA 3
 
 
 #define OJ_WT0 0
